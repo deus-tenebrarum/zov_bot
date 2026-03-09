@@ -1235,6 +1235,8 @@
       leaderboardList.innerHTML = '<p class="progress-block-desc">Открой игру через бота в Telegram.</p>';
       return;
     }
+    if (typeof syncLeaderboard === 'function') syncLeaderboard();
+    setTimeout(function () {
     fetch(base + '/api/leaderboard', { method: 'GET' })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1251,6 +1253,7 @@
       .catch(function () {
         leaderboardList.innerHTML = '<p class="progress-block-desc">Не удалось загрузить. Проверь соединение.</p>';
       });
+    }, 400);
   }
   function syncLoad() {
     var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
