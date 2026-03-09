@@ -452,7 +452,10 @@
       if (typeof renderMining === 'function') renderMining();
       startEnergyTick();
       if (typeof syncLoad === 'function') syncLoad();
-      if (getInitData() && typeof syncLeaderboard === 'function') setTimeout(syncLeaderboard, 500);
+      if (typeof syncLeaderboard === 'function') {
+        setTimeout(syncLeaderboard, 500);
+        setTimeout(syncLeaderboard, 2500);
+      }
     } catch (err) {
       console.error('ZOV startApp:', err);
     }

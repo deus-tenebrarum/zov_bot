@@ -25,14 +25,14 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
-LEADERBOARD_FILE = BASE_DIR / "leaderboard.json"
+DATA_DIR = Path(os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "")) or (BASE_DIR / "data")
+LEADERBOARD_FILE = DATA_DIR / "leaderboard.json"
+STORAGE_FILE = DATA_DIR / "storage.json"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 CORS(app)
 
-# Хранилище прогресса по user_id (Telegram)
 STORAGE = {}
-STORAGE_FILE = BASE_DIR / "storage.json"
 
 
 def _load_storage():
@@ -49,6 +49,7 @@ def _load_storage():
 
 def _save_storage():
     try:
+        STORAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(STORAGE_FILE, "w", encoding="utf-8") as f:
             json.dump(STORAGE, f, ensure_ascii=False, indent=0)
     except Exception as e:
@@ -75,6 +76,7 @@ def _load_leaderboard():
 
 def _save_leaderboard():
     try:
+        LEADERBOARD_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(LEADERBOARD_FILE, "w", encoding="utf-8") as f:
             json.dump(LEADERBOARD, f, ensure_ascii=False, indent=0)
     except Exception as e:
