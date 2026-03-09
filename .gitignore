@@ -1,0 +1,16 @@
+# Секреты
+config_local.py
+.env
+.env.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp

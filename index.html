@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Zero or Valuable</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=36">
+</head>
+<body>
+  <div id="loader" class="loader loader--loading">
+    <div class="loader-bg">
+      <div class="loader-gradient"></div>
+      <div class="loader-grid"></div>
+      <div class="loader-particles" id="loaderParticles"></div>
+    </div>
+    <div class="loader-content">
+      <div class="loader-logo">
+        <span class="loader-logo-z">Z</span>
+        <span class="loader-logo-o">O</span>
+        <span class="loader-logo-v">V</span>
+      </div>
+      <p class="loader-tagline">Zero or Valuable</p>
+      <div class="loader-bar-wrap">
+        <div class="loader-bar" id="loaderBar"></div>
+        <span class="loader-percent" id="loaderPercent">0%</span>
+      </div>
+      <p class="loader-hint">Открывай боксы • Собирай карточки • Покоряй мир</p>
+    </div>
+    <div class="loader-tap" id="loaderTap">Нажми, чтобы продолжить</div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <header class="header">
+      <div class="header-brand" role="button" tabindex="0" aria-label="Логотип"><span class="brand-z">Z</span><span class="brand-ov">OV</span></div>
+      <div class="header-wallet">
+        <span class="header-wallet-icon"></span>
+        <span id="coinCount" class="header-wallet-value">0</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="screen screen--clicker active" data-panel="clicker">
+        <div class="screen-inner">
+          <div class="game-card">
+            <h1 class="game-card-title">Зарабатывай монеты</h1>
+            <p class="game-card-desc">Тапай по монете — тратится энергия. Копи на боксы и выбивай карточки.</p>
+            <div class="game-card-area">
+              <button type="button" class="tap-coin" id="coinBtn" aria-label="Тапнуть за монету">
+                <span class="tap-coin-glow"></span>
+                <span class="tap-coin-coin">
+                  <span class="tap-coin-logo">Z</span>
+                </span>
+              </button>
+            </div>
+            <div class="game-card-bars">
+              <div class="bar-wrap bar-energy">
+                <span class="bar-label">Энергия</span>
+                <div class="bar-track"><div class="bar-fill" id="energyFill"></div></div>
+                <span class="bar-value" id="energyText">20 / 20</span>
+              </div>
+              <div class="bar-wrap bar-level">
+                <span class="bar-label">Уровень <span id="levelNum">1</span></span>
+                <div class="bar-track"><div class="bar-fill bar-fill--xp" id="levelFill"></div></div>
+                <span class="bar-value" id="xpText">0 / 100 XP</span>
+              </div>
+            </div>
+            <p class="game-card-hint">+1 энергия в секунду · Прокачивай в разделе «Прокачка»</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--boxes" data-panel="boxes">
+        <div class="screen-inner">
+          <h1 class="screen-heading">Боксы</h1>
+          <p class="screen-sub">Открывай за монеты — внутри случайная локация из любой точки мира.</p>
+          <div class="boxes-list">
+            <button type="button" class="loot-box loot-box--bronze" id="boxBronze" data-cost="50" data-box="bronze">
+              <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--bronze"></span></span>
+              <span class="loot-box-text">
+                <strong class="loot-box-name">Бронзовый</strong>
+                <span class="loot-box-desc">1 карточка</span>
+              </span>
+              <span class="loot-box-price"><span class="loot-box-coin"></span> 50</span>
+            </button>
+            <button type="button" class="loot-box loot-box--silver" id="boxSilver" data-cost="200" data-box="silver">
+              <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--silver"></span></span>
+              <span class="loot-box-text">
+                <strong class="loot-box-name">Серебряный</strong>
+                <span class="loot-box-desc">Лучший шанс на редкое</span>
+              </span>
+              <span class="loot-box-price"><span class="loot-box-coin"></span> 200</span>
+            </button>
+            <button type="button" class="loot-box loot-box--gold" id="boxGold" data-cost="500" data-box="gold">
+              <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--gold"></span></span>
+              <span class="loot-box-text">
+                <strong class="loot-box-name">Золотой</strong>
+                <span class="loot-box-desc">Шанс на легенду</span>
+              </span>
+              <span class="loot-box-price"><span class="loot-box-coin"></span> 500</span>
+            </button>
+            <button type="button" class="loot-box loot-box--platinum" id="boxPlatinum" data-cost="1200" data-box="platinum">
+              <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--platinum"></span></span>
+              <span class="loot-box-text">
+                <strong class="loot-box-name">Платиновый</strong>
+                <span class="loot-box-desc">Выше шанс легенды</span>
+              </span>
+              <span class="loot-box-price"><span class="loot-box-coin"></span> 1200</span>
+            </button>
+            <button type="button" class="loot-box loot-box--locked" id="boxSecret" data-cost="-1" data-box="secret" disabled title="Секретный ключ (промокод)">
+              <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--locked"></span></span>
+              <span class="loot-box-text">
+                <strong class="loot-box-name">Секретный</strong>
+                <span class="loot-box-desc">Ключ из промокода</span>
+              </span>
+              <span class="loot-box-price loot-box-price--locked">1 ключ</span>
+            </button>
+          </div>
+          <div class="progress-block packs-block">
+            <h2 class="progress-block-title">Паки</h2>
+            <p class="progress-block-desc">Открыть несколько кейсов со скидкой.</p>
+            <div class="packs-list">
+              <div class="packs-row packs-row--bronze">
+                <span class="packs-label">Бронза</span>
+                <button type="button" class="pack-btn" data-pack="bronze-5">5 шт</button>
+                <button type="button" class="pack-btn" data-pack="bronze-10">10 шт</button>
+                <button type="button" class="pack-btn" data-pack="bronze-100">100 шт</button>
+              </div>
+              <div class="packs-row packs-row--silver">
+                <span class="packs-label">Серебро</span>
+                <button type="button" class="pack-btn" data-pack="silver-5">5 шт</button>
+                <button type="button" class="pack-btn" data-pack="silver-10">10 шт</button>
+                <button type="button" class="pack-btn" data-pack="silver-100">100 шт</button>
+              </div>
+              <div class="packs-row packs-row--gold">
+                <span class="packs-label">Золото</span>
+                <button type="button" class="pack-btn" data-pack="gold-5">5 шт</button>
+                <button type="button" class="pack-btn" data-pack="gold-10">10 шт</button>
+                <button type="button" class="pack-btn" data-pack="gold-100">100 шт</button>
+              </div>
+              <div class="packs-row packs-row--platinum">
+                <span class="packs-label">Платина</span>
+                <button type="button" class="pack-btn" data-pack="platinum-5">5 шт</button>
+                <button type="button" class="pack-btn" data-pack="platinum-10">10 шт</button>
+                <button type="button" class="pack-btn" data-pack="platinum-100">100 шт</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--cards" data-panel="cards">
+        <div class="screen-inner">
+          <h1 class="screen-heading">Коллекция</h1>
+          <p class="screen-sub">Карточки городов и сёл — от Нью-Йорка до деревни в Сенегале.</p>
+          <div class="collection-bar">
+            <span class="collection-count">У тебя <strong id="cardsCount">0</strong> карточек</span>
+          </div>
+          <div class="cards-grid" id="cardsGrid"></div>
+        </div>
+      </section>
+
+      <section class="screen screen--progress" data-panel="progress">
+        <div class="screen-inner">
+          <h1 class="screen-heading">Прокачка</h1>
+          <p class="screen-sub">Бусты за монеты и награды за коллекции.</p>
+          <div class="progress-block">
+            <h2 class="progress-block-title">Бусты</h2>
+            <div class="upgrades-list" id="upgradesList"></div>
+          </div>
+          <div class="progress-block" id="miningBlock"></div>
+          <div class="progress-block">
+            <h2 class="progress-block-title">Коллекции</h2>
+            <p class="progress-block-desc">Собери карточки по условию — получи награду.</p>
+            <div class="collections-list" id="collectionsList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--leaderboard" data-panel="leaderboard">
+        <div class="screen-inner">
+          <h1 class="screen-heading">Лидеры</h1>
+          <p class="screen-sub">Топ по общему количеству карточек.</p>
+          <div id="leaderboardList" class="leaderboard-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="nav">
+      <button type="button" class="nav-btn active" data-tab="clicker" onclick="if(window.zovTab)window.zovTab('clicker',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3l14 9-6 2-4 6-4-17z"/></svg></span><span class="nav-btn-label">Кликер</span></button>
+      <button type="button" class="nav-btn" data-tab="boxes" onclick="if(window.zovTab)window.zovTab('boxes',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7l8.7 5 8.7-5M12 22V12"/></svg></span><span class="nav-btn-label">Боксы</span></button>
+      <button type="button" class="nav-btn" data-tab="cards" onclick="if(window.zovTab)window.zovTab('cards',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="8" rx="1"/><rect x="14" y="4" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="nav-btn-label">Карточки</span></button>
+      <button type="button" class="nav-btn" data-tab="progress" onclick="if(window.zovTab)window.zovTab('progress',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><span class="nav-btn-label">Прокачка</span></button>
+      <button type="button" class="nav-btn" data-tab="leaderboard" onclick="if(window.zovTab)window.zovTab('leaderboard',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 15v2c0 .5-.4.9-.9 1.1-1.2.4-2 1.5-2 3"/><path d="M14 15v2c0 .5.4.9.9 1.1 1.2.4 2 1.5 2 3"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg></span><span class="nav-btn-label">Лидеры</span></button>
+    </nav>
+  </div>
+
+  <!-- Секретное меню: ввод промокода (5 тапов по логотипу) -->
+  <div id="secretCodeModal" class="modal secret-modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card-wrap secret-code-wrap">
+      <h2 class="progress-block-title">Секретный код</h2>
+      <input type="text" id="secretCodeInput" class="secret-code-input" placeholder="Введи код" maxlength="20" />
+      <button type="button" id="secretCodeSubmit" class="upgrade-btn">Применить</button>
+      <button type="button" id="secretCodeClose" class="modal-close" aria-label="Закрыть">×</button>
+    </div>
+  </div>
+
+  <!-- CARD REVEAL MODAL -->
+  <div id="cardModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-reveal-flash" id="modalRevealFlash"></div>
+    <div class="modal-reveal-label" id="modalRevealLabel"></div>
+    <div class="modal-reveal-particles" id="modalRevealParticles"></div>
+    <div class="modal-card-wrap" id="modalCardWrap">
+      <div class="modal-card nft-card" id="modalCardContent">
+        <div class="nft-card-image-wrap">
+          <img id="modalCardImage" class="nft-card-image" src="" alt="" />
+          <div class="nft-card-overlay"></div>
+        </div>
+        <div class="nft-card-inner">
+          <div class="nft-card-type" id="modalCardType">ГОРОД</div>
+          <div class="nft-card-name" id="modalCardName">—</div>
+          <div class="nft-card-country" id="modalCardCountry">—</div>
+          <div class="nft-card-rarity" id="modalCardRarity">—</div>
+        </div>
+      </div>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Закрыть">×</button>
+    </div>
+  </div>
+
+  <!-- PACK REVEAL — вне app, поверх всего -->
+  <div id="packRevealModal" class="modal pack-reveal-modal hidden">
+    <div class="modal-backdrop pack-reveal-backdrop"></div>
+    <div class="pack-reveal-wrap">
+      <div class="pack-reveal-loading hidden" id="packRevealLoading">
+        <div class="pack-reveal-spinner"></div>
+        <p class="pack-reveal-loading-text">Открываем паки...</p>
+      </div>
+      <div class="pack-reveal-cards" id="packRevealCards"></div>
+      <p class="pack-reveal-hint">Нажми — открыть все · Ещё раз — закрыть</p>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      try { var p = new URLSearchParams(location.search); if (p.get('api')) window.ZOV_API_BASE = p.get('api').replace(/\/$/, ''); } catch(e){}
+      var loader = document.getElementById('loader');
+      var app = document.getElementById('app');
+      var bar = document.getElementById('loaderBar');
+      var pct = document.getElementById('loaderPercent');
+      var tap = document.getElementById('loaderTap');
+      var ready = false;
+      function setProgress(n) {
+        if (bar) bar.style.width = n + '%';
+        if (pct) pct.textContent = Math.round(n) + '%';
+      }
+      function showGame() {
+        if (!loader || !app) return;
+        loader.remove();
+        app.classList.remove('hidden');
+        document.dispatchEvent(new CustomEvent('zov-ready'));
+      }
+      function onReady() {
+        if (ready) return;
+        ready = true;
+        loader.classList.remove('loader--loading');
+        loader.classList.add('loader--ready');
+        setProgress(100);
+        if (loader) loader.onclick = function() { showGame(); };
+        if (tap) tap.onclick = function(e) { e.stopPropagation(); showGame(); };
+      }
+      var done = 0, need = 2;
+      function check() {
+        done++;
+        setProgress(Math.min(90, (done / need) * 100));
+        if (done >= need) setTimeout(onReady, 200);
+      }
+      if (document.readyState === 'complete') check();
+      else window.addEventListener('load', check);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(check).catch(check);
+      } else { check(); }
+      setTimeout(function() { if (!ready) onReady(); }, 4000);
+    })();
+  </script>
+  <script src="data.js?v=1"></script>
+  <script src="app.js?v=26"></script>
+</body>
+</html>
