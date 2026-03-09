@@ -1247,13 +1247,29 @@
       })
       .then(function (data) {
         if (!Array.isArray(data)) data = [];
+        var meEl = document.getElementById('leaderboardMe');
+        var currentUserId = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : '';
+        var myPos = -1;
+        data.forEach(function (row, i) { if (String(row.user_id) === currentUserId) myPos = i + 1; });
+        var topN = (myPos > 0 && myPos > 9) ? 9 : 50;
+        var showMe = myPos > 0 && myPos > 9;
+        if (meEl) {
+          meEl.classList.toggle('hidden', !showMe);
+          if (showMe) {
+            var myRow = data.find(function (r) { return String(r.user_id) === currentUserId; });
+            var xpVal = (myRow && myRow.xp != null) ? myRow.xp : '—';
+            var lvlVal = (myRow && myRow.level != null) ? myRow.level : '—';
+            meEl.innerHTML = '<div class="leaderboard-me-inner"><span class="leaderboard-rank">' + myPos + '</span><span class="lb-col lb-name">' + escapeHtml((myRow && myRow.username) || 'Ты') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + ((myRow && myRow.cardsCount) || 0) + '</span><span class="lb-col lb-cost">—</span></div>';
+          }
+        }
         leaderboardList.innerHTML = data.length === 0
           ? '<p class="progress-block-desc">Пока никого нет. Собери карточки — появишься в топе!</p>'
           : '<div class="leaderboard-header"><span class="lb-rank">№</span><span class="lb-col lb-name">Имя</span><span class="lb-col lb-xp">XP / Уровень</span><span class="lb-col lb-cards">Карт</span><span class="lb-col lb-cost">$</span></div>' +
-            '<ul class="leaderboard-ul">' + data.map(function (row, i) {
+            '<ul class="leaderboard-ul">' + data.slice(0, topN).map(function (row, i) {
               var xpVal = row.xp != null ? row.xp : '—';
               var lvlVal = row.level != null ? row.level : '—';
-              return '<li><span class="leaderboard-rank">' + (i + 1) + '</span><span class="lb-col lb-name">' + escapeHtml(row.username || 'Игрок') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + (row.cardsCount || 0) + '</span><span class="lb-col lb-cost">—</span></li>';
+              var isMe = String(row.user_id) === currentUserId;
+              return '<li class="' + (isMe ? 'leaderboard-me-row' : '') + '"><span class="leaderboard-rank">' + (i + 1) + '</span><span class="lb-col lb-name">' + escapeHtml(row.username || 'Игрок') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + (row.cardsCount || 0) + '</span><span class="lb-col lb-cost">—</span></li>';
             }).join('') + '</ul>';
       })
       .catch(function () {

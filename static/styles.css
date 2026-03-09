@@ -1485,3 +1485,28 @@ html, body {
 .lb-col { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-name { font-weight: 600; }
 .lb-cost { color: var(--text-secondary); text-align: right; }
+.leaderboard-ul li.leaderboard-me-row {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
+}
+.leaderboard-wrap { position: relative; min-height: 120px; }
+.leaderboard-me {
+  position: sticky;
+  bottom: 0;
+  margin-top: 12px;
+  padding: 12px 0 0;
+  background: linear-gradient(to top, var(--bg-deep) 80%, transparent);
+}
+.leaderboard-me.hidden { display: none !important; }
+.leaderboard-me-inner {
+  display: grid;
+  grid-template-columns: 28px 1fr 90px 50px 36px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(24,24,32,0.95);
+  border-radius: 12px;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+  font-size: 0.9rem;
+}

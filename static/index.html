@@ -185,8 +185,10 @@
       <section class="screen screen--leaderboard" data-panel="leaderboard">
         <div class="screen-inner">
           <h1 class="screen-heading">Лидеры</h1>
-          <p class="screen-sub">Топ по общему количеству карточек.</p>
-          <div id="leaderboardList" class="leaderboard-list"></div>
+          <div class="leaderboard-wrap">
+            <div id="leaderboardList" class="leaderboard-list"></div>
+            <div id="leaderboardMe" class="leaderboard-me hidden"></div>
+          </div>
         </div>
       </section>
     </main>
@@ -291,6 +293,6 @@
     })();
   </script>
   <script src="data.js?v=1"></script>
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
