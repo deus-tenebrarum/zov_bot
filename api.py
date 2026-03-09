@@ -16,6 +16,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 
 from config import BOT_TOKEN
 
@@ -26,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
+CORS(app)
 
 # In-memory хранилище (для продакшена лучше Redis/DB)
 STORAGE = {}
