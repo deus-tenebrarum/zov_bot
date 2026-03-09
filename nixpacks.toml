@@ -4,8 +4,5 @@ nixPkgs = ["python311", "pip"]
 [phases.install]
 cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
 
-[phases.build]
-cmds = ["python scripts/build_locations.py"]
-
 [start]
 cmd = "python main.py"
