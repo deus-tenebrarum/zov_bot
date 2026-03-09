@@ -49,7 +49,7 @@ async function build() {
     const type = 'city';
     out.push([name, country, type]);
   }
-  const outPath = path.join(__dirname, '..', 'locations.json');
+  const outPath = path.join(__dirname, '..', 'static', 'locations.json');
   fs.writeFileSync(outPath, JSON.stringify(out), 'utf8');
   console.log('Written', out.length, 'locations to', outPath);
 }
