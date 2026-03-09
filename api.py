@@ -170,9 +170,11 @@ def api_leaderboard():
     user_id = str(data.get("user_id") or "")
     username = (data.get("username") or "").strip() or "Игрок"
     cards_count = int(data.get("cardsCount") or 0)
+    xp = int(data.get("xp") or 0)
+    level = int(data.get("level") or 1)
     if not user_id:
         return jsonify({"ok": False})
-    LEADERBOARD[user_id] = {"user_id": user_id, "username": username, "cardsCount": cards_count}
+    LEADERBOARD[user_id] = {"user_id": user_id, "username": username, "cardsCount": cards_count, "xp": xp, "level": level}
     _save_leaderboard()
     return jsonify({"ok": True})
 

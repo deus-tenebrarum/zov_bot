@@ -1249,8 +1249,11 @@
         if (!Array.isArray(data)) data = [];
         leaderboardList.innerHTML = data.length === 0
           ? '<p class="progress-block-desc">Пока никого нет. Собери карточки — появишься в топе!</p>'
-          : '<ul class="leaderboard-ul">' + data.map(function (row, i) {
-              return '<li><span class="leaderboard-rank">' + (i + 1) + '</span> ' + escapeHtml(row.username || 'Игрок') + ' — ' + (row.cardsCount || 0) + ' карт</li>';
+          : '<div class="leaderboard-header"><span class="lb-rank">№</span><span class="lb-col lb-name">Имя</span><span class="lb-col lb-xp">XP / Уровень</span><span class="lb-col lb-cards">Карт</span><span class="lb-col lb-cost">$</span></div>' +
+            '<ul class="leaderboard-ul">' + data.map(function (row, i) {
+              var xpVal = row.xp != null ? row.xp : '—';
+              var lvlVal = row.level != null ? row.level : '—';
+              return '<li><span class="leaderboard-rank">' + (i + 1) + '</span><span class="lb-col lb-name">' + escapeHtml(row.username || 'Игрок') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + (row.cardsCount || 0) + '</span><span class="lb-col lb-cost">—</span></li>';
             }).join('') + '</ul>';
       })
       .catch(function () {
@@ -1302,7 +1305,7 @@
     fetch(base + '/api/leaderboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: String(user.id), username: username, cardsCount: getTotalCards() }),
+      body: JSON.stringify({ user_id: String(user.id), username: username, cardsCount: getTotalCards(), xp: xp, level: level }),
     }).catch(function () {});
   }
   var syncSaveTimer = null;
