@@ -172,11 +172,29 @@
   var lastActionEl = null;
   var lastActionTime = 0;
   var ACTION_DEBOUNCE_MS = 450;
+  var _touchStart = { x: 0, y: 0 };
+  var _didScroll = false;
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length) { _touchStart.x = e.touches[0].clientX; _touchStart.y = e.touches[0].clientY; _didScroll = false; }
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches.length && (Math.abs(e.touches[0].clientX - _touchStart.x) > 10 || Math.abs(e.touches[0].clientY - _touchStart.y) > 10)) _didScroll = true;
+  }, { passive: true });
+  document.addEventListener('pointerdown', function(e) {
+    if (e.pointerType === 'touch') return;
+    _touchStart.x = e.clientX; _touchStart.y = e.clientY; _didScroll = false;
+  }, { passive: true });
+  document.addEventListener('pointermove', function(e) {
+    if (e.pointerType === 'touch') return;
+    if (Math.abs(e.clientX - _touchStart.x) > 10 || Math.abs(e.clientY - _touchStart.y) > 10) _didScroll = true;
+  }, { passive: true });
   function handleAppClick(e) {
     if (!app || app.classList.contains('hidden')) return;
     var t = e.target;
     if (t.closest('.header-brand')) return;
+    if (e.type === 'touchstart' && (t.closest('.nft-card') || t.closest('.loot-box') || t.closest('[data-pack]') || t.closest('.nav-btn'))) return;
     if (t.closest('.nft-card')) {
+      if (_didScroll) return;
       var cardEl = t.closest('.nft-card');
       if (cardEl === lastActionEl && Date.now() - lastActionTime < 400) return;
       lastActionEl = cardEl; lastActionTime = Date.now();
@@ -188,6 +206,7 @@
     }
     if (t.closest('#coinBtn')) return;
     if (t.closest('.nav-btn')) {
+      if (_didScroll) return;
       var btn = t.closest('.nav-btn');
       if (btn === lastActionEl && Date.now() - lastActionTime < 300) return;
       lastActionEl = btn; lastActionTime = Date.now();
@@ -201,6 +220,7 @@
       return;
     }
     if (t.closest('.loot-box')) {
+      if (_didScroll) return;
       var box = t.closest('.loot-box');
       if (box.disabled) return;
       if (Date.now() - _cardModalClosedAt < 400) return;
@@ -213,6 +233,7 @@
       return;
     }
     if (t.closest('[data-pack]')) {
+      if (_didScroll) return;
       var packEl = t.closest('[data-pack]');
       if (packEl.disabled) return;
       if (Date.now() - _cardModalClosedAt < 400) return;
@@ -872,13 +893,7 @@
       )
       .join('');
 
-    cardsGrid.querySelectorAll('.nft-card').forEach((el) => {
-      el.addEventListener('click', () => {
-        const id = el.dataset.cardId;
-        const card = cards.find((c) => c.id === id);
-        if (card) showCardModal(card);
-      });
-    });
+    /* клики по карточкам обрабатывает handleAppClick */
   }
 
   function escapeHtml(s) {
