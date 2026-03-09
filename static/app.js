@@ -1251,8 +1251,11 @@
         var currentUserId = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : '';
         var myPos = -1;
         data.forEach(function (row, i) { if (String(row.user_id) === currentUserId) myPos = i + 1; });
-        var topN = (myPos > 0 && myPos > 9) ? 9 : 50;
-        var showMe = myPos > 0 && myPos > 9;
+        var rowH = 56;
+        var availH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight - 220 : 400;
+        var visibleRows = Math.max(6, Math.min(50, Math.floor(availH / rowH)));
+        var topN = (myPos > 0 && myPos > visibleRows) ? visibleRows : 50;
+        var showMe = myPos > 0 && myPos > visibleRows;
         if (meEl) {
           meEl.classList.toggle('hidden', !showMe);
           if (showMe) {
