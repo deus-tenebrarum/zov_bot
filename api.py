@@ -15,23 +15,71 @@ import urllib.parse
 from collections import OrderedDict
 from pathlib import Path
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 
-from config import BOT_TOKEN
+from config import BOT_TOKEN, API_URL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+LEADERBOARD_FILE = BASE_DIR / "leaderboard.json"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 CORS(app)
 
-# In-memory хранилище (для продакшена лучше Redis/DB)
+# Хранилище прогресса по user_id (Telegram)
 STORAGE = {}
-LEADERBOARD = {}
+STORAGE_FILE = BASE_DIR / "storage.json"
+
+
+def _load_storage():
+    if STORAGE_FILE.exists():
+        try:
+            with open(STORAGE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            logger.warning("Failed to load storage: %s", e)
+    return {}
+
+
+def _save_storage():
+    try:
+        with open(STORAGE_FILE, "w", encoding="utf-8") as f:
+            json.dump(STORAGE, f, ensure_ascii=False, indent=0)
+    except Exception as e:
+        logger.warning("Failed to save storage: %s", e)
+
+
+STORAGE.update(_load_storage())
+
+
+def _load_leaderboard():
+    if LEADERBOARD_FILE.exists():
+        try:
+            with open(LEADERBOARD_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            logger.warning("Failed to load leaderboard: %s", e)
+    return {}
+
+
+def _save_leaderboard():
+    try:
+        with open(LEADERBOARD_FILE, "w", encoding="utf-8") as f:
+            json.dump(LEADERBOARD, f, ensure_ascii=False, indent=0)
+    except Exception as e:
+        logger.warning("Failed to save leaderboard: %s", e)
+
+
+# Загружаем лидерборд при старте
+LEADERBOARD.update(_load_leaderboard())
 
 
 def validate_init_data(init_data: str) -> dict | None:
@@ -67,30 +115,44 @@ def validate_init_data(init_data: str) -> dict | None:
         return None
 
 
-@app.route("/api/load", methods=["GET"])
-def api_load():
-    """Загрузка сохранения по initData (query: initData)."""
+def _get_user_id():
+    """user_id из initData (проверка) или из запроса (fallback для TG WebView)."""
     init_data = request.args.get("initData") or request.headers.get("X-Init-Data")
+    try:
+        data = request.get_json(silent=True) or {}
+        init_data = init_data or data.get("initData")
+    except Exception:
+        data = {}
     user = validate_init_data(init_data)
-    if not user:
+    if user:
+        return str(user.get("id"))
+    uid = data.get("user_id") or request.args.get("user_id")
+    return str(uid) if uid else None
+
+
+@app.route("/api/load", methods=["GET", "POST"])
+def api_load():
+    """Загрузка сохранения по user_id (Telegram). Один аккаунт на всех устройствах."""
+    user_id = _get_user_id()
+    if not user_id:
         return jsonify({"ok": False, "state": None})
-    user_id = str(user.get("id"))
     state = STORAGE.get(user_id)
     return jsonify({"ok": True, "state": state})
 
 
 @app.route("/api/save", methods=["POST"])
 def api_save():
-    """Сохранение состояния. Body: { "initData": "...", "state": { ... } }."""
+    """Сохранение состояния по user_id. Body: { "initData" или "user_id", "state" }."""
     data = request.get_json() or {}
     init_data = data.get("initData") or request.headers.get("X-Init-Data")
     user = validate_init_data(init_data)
-    if not user:
+    user_id = str(user.get("id")) if user else str(data.get("user_id") or "")
+    if not user_id:
         return jsonify({"ok": False})
-    user_id = str(user.get("id"))
     state = data.get("state")
     if state is not None:
         STORAGE[user_id] = state
+        _save_storage()
     return jsonify({"ok": True})
 
 
@@ -101,14 +163,13 @@ def api_leaderboard():
         items.sort(key=lambda x: -(x.get("cardsCount") or 0))
         return jsonify(items[:50])
     data = request.get_json() or {}
-    init_data = data.get("initData") or request.headers.get("X-Init-Data")
-    user = validate_init_data(init_data)
-    if not user:
-        return jsonify({"ok": False})
-    user_id = str(user.get("id"))
-    username = data.get("username") or user.get("username") or user.get("first_name") or "Игрок"
+    user_id = str(data.get("user_id") or "")
+    username = (data.get("username") or "").strip() or "Игрок"
     cards_count = int(data.get("cardsCount") or 0)
+    if not user_id:
+        return jsonify({"ok": False})
     LEADERBOARD[user_id] = {"user_id": user_id, "username": username, "cardsCount": cards_count}
+    _save_leaderboard()
     return jsonify({"ok": True})
 
 
@@ -119,8 +180,12 @@ def health():
 
 @app.route("/")
 def index():
-    """Главная — игра (Mini App)."""
-    return send_from_directory(STATIC_DIR, "index.html")
+    """Главная — игра (Mini App). Инжектим API URL для лидерборда."""
+    html_path = STATIC_DIR / "index.html"
+    html = html_path.read_text(encoding="utf-8")
+    api_base = API_URL or request.url_root.rstrip("/")
+    html = html.replace("__ZOV_API_BASE__", api_base)
+    return Response(html, mimetype="text/html")
 
 
 def main():

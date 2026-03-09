@@ -248,6 +248,7 @@
 
   <script>
     (function(){
+      window.ZOV_API_BASE = '__ZOV_API_BASE__';
       try { var p = new URLSearchParams(location.search); if (p.get('api')) window.ZOV_API_BASE = p.get('api').replace(/\/$/, ''); } catch(e){}
       var loader = document.getElementById('loader');
       var app = document.getElementById('app');

@@ -1215,29 +1215,41 @@
   function loadLeaderboard() {
     if (!leaderboardList) return;
     leaderboardList.innerHTML = '<p class="progress-block-desc">Загрузка...</p>';
-    if (!API_BASE) {
+    var base = API_BASE || (typeof location !== 'undefined' && location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) {
       leaderboardList.innerHTML = '<p class="progress-block-desc">Открой игру через бота в Telegram.</p>';
       return;
     }
-    fetch(API_BASE + '/api/leaderboard').then(function (r) { return r.json(); }).then(function (data) {
-      if (!Array.isArray(data)) data = [];
-      leaderboardList.innerHTML = data.length === 0
-        ? '<p class="progress-block-desc">Пока никого нет.</p>'
-        : '<ul class="leaderboard-ul">' + data.map(function (row, i) {
-            return '<li><span class="leaderboard-rank">' + (i + 1) + '</span> ' + escapeHtml(row.username || 'Игрок') + ' — ' + (row.cardsCount || 0) + ' карт</li>';
-          }).join('') + '</ul>';
-    }).catch(function () {
-      leaderboardList.innerHTML = '<p class="progress-block-desc">Не удалось загрузить.</p>';
-    });
+    fetch(base + '/api/leaderboard', { method: 'GET' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        if (!Array.isArray(data)) data = [];
+        leaderboardList.innerHTML = data.length === 0
+          ? '<p class="progress-block-desc">Пока никого нет. Собери карточки — появишься в топе!</p>'
+          : '<ul class="leaderboard-ul">' + data.map(function (row, i) {
+              return '<li><span class="leaderboard-rank">' + (i + 1) + '</span> ' + escapeHtml(row.username || 'Игрок') + ' — ' + (row.cardsCount || 0) + ' карт</li>';
+            }).join('') + '</ul>';
+      })
+      .catch(function () {
+        leaderboardList.innerHTML = '<p class="progress-block-desc">Не удалось загрузить. Проверь соединение.</p>';
+      });
   }
   function syncLoad() {
-    if (!API_BASE || !getInitData()) return;
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
+    if (typeof syncLeaderboard === 'function') syncLeaderboard();
+    var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
+    if (!user || !user.id) return;
     var initData = getInitData();
-    fetch(API_BASE + '/api/load?initData=' + encodeURIComponent(initData))
+    var q = 'user_id=' + encodeURIComponent(String(user.id));
+    if (initData) q = 'initData=' + encodeURIComponent(initData) + '&' + q;
+    fetch(base + '/api/load?' + q)
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res || !res.ok) return;
-        if (typeof syncLeaderboard === 'function') syncLeaderboard();
         if (!res.state) return;
         var s = res.state;
         if (typeof s.coins === 'number') { coins = s.coins; saveCoins(); }
@@ -1261,22 +1273,27 @@
       .catch(function () {});
   }
   function syncLeaderboard() {
-    if (!API_BASE || !getInitData()) return;
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
     var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
-    var username = (user && (user.username || user.first_name)) || 'Игрок';
-    fetch(API_BASE + '/api/leaderboard', {
+    if (!user || !user.id) return;
+    var username = (user.username || user.first_name || 'Игрок').toString();
+    fetch(base + '/api/leaderboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getInitData(), cardsCount: getTotalCards(), username: username }),
+      body: JSON.stringify({ user_id: String(user.id), username: username, cardsCount: getTotalCards() }),
     }).catch(function () {});
   }
   var syncSaveTimer = null;
   function syncSave() {
-    if (!API_BASE || !getInitData()) return;
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
+    if (!base || !user || !user.id) return;
     if (syncSaveTimer) clearTimeout(syncSaveTimer);
     syncSaveTimer = setTimeout(function () {
       var payload = {
-        initData: getInitData(),
+        user_id: String(user.id),
+        initData: getInitData() || undefined,
         state: {
           coins: coins,
           cards: cards,
@@ -1291,7 +1308,7 @@
           secretBoxKeys: secretBoxKeys,
         },
       };
-      fetch(API_BASE + '/api/save', {
+      fetch(base + '/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
