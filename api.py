@@ -58,6 +58,9 @@ def _save_storage():
 STORAGE.update(_load_storage())
 
 
+LEADERBOARD = {}
+
+
 def _load_leaderboard():
     if LEADERBOARD_FILE.exists():
         try:
@@ -78,7 +81,6 @@ def _save_leaderboard():
         logger.warning("Failed to save leaderboard: %s", e)
 
 
-# Загружаем лидерборд при старте
 LEADERBOARD.update(_load_leaderboard())
 
 
