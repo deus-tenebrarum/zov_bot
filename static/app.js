@@ -14,6 +14,7 @@
     lastMiningClaimTime: 'zov_lastMiningClaimTime',
     accumulatedMiningPassive: 'zov_accumulatedMiningPassive',
     secretBoxKeys: 'zov_secretBoxKeys',
+    boxesOpened: 'zov_boxesOpened',
   };
   const BOX_COSTS = { bronze: 50, silver: 200, gold: 500, platinum: 1200, secret: null };
   var PROMO_CODES = { PROMO: { coins: 10000, secretBoxKeys: 1 }, BALANCE: { coins: 100000 } };
@@ -33,17 +34,18 @@
   let lastMiningClaimTime = parseInt(localStorage.getItem(STORAGE_KEYS.lastMiningClaimTime) || '0', 10);
   let accumulatedMiningPassive = parseInt(localStorage.getItem(STORAGE_KEYS.accumulatedMiningPassive) || '0', 10);
   let secretBoxKeys = parseInt(localStorage.getItem(STORAGE_KEYS.secretBoxKeys) || '0', 10);
+  let boxesOpened = parseInt(localStorage.getItem(STORAGE_KEYS.boxesOpened) || '0', 10);
   energyMax = 20 + (upgrades.energyCap || 0) * 10;
   if (!Array.isArray(cards)) cards = [];
   cards = cards.map(function (c) { return typeof c.count === 'number' ? c : Object.assign({}, c, { count: 1 }); });
 
   const UPGRADE_DEFS = [
-    { id: 'energyCap', name: 'Запас энергии', desc: '+10 к макс. энергии', cost: 200, maxLevel: 5, getValue: () => (upgrades.energyCap || 0) * 10, requiredLevelPerTier: [0, 1, 3, 5, 8, 12] },
-    { id: 'regen', name: 'Восстановление', desc: '+0.5 энергии/сек', cost: 150, maxLevel: 4, getValue: () => (upgrades.regen || 0) * 0.5, requiredLevelPerTier: [0, 1, 4, 7, 11] },
-    { id: 'coinPerTap', name: 'Монет за тап', desc: '+1 монета за тап', cost: 300, maxLevel: 5, getValue: () => upgrades.coinPerTap || 0, requiredLevelPerTier: [0, 1, 3, 6, 10, 15] },
+    { id: 'energyCap', name: 'Запас энергии', desc: '+10 к макс. энергии', cost: 200, maxLevel: 10, getValue: () => (upgrades.energyCap || 0) * 10, requiredLevelPerTier: [0, 1, 3, 5, 8, 12, 16, 20, 25, 30, 35] },
+    { id: 'regen', name: 'Восстановление', desc: '+0.5 энергии/сек', cost: 150, maxLevel: 8, getValue: () => (upgrades.regen || 0) * 0.5, requiredLevelPerTier: [0, 1, 4, 7, 11, 15, 20, 26, 32] },
+    { id: 'coinPerTap', name: 'Монет за тап', desc: '+1 монета за тап', cost: 300, maxLevel: 10, getValue: () => upgrades.coinPerTap || 0, requiredLevelPerTier: [0, 1, 3, 6, 10, 15, 20, 26, 32, 38, 45] },
     { id: 'mining', name: 'Майнинг в фоне', desc: 'Забирай награду каждые 5 ч', cost: 600, maxLevel: 1, getValue: () => (upgrades.mining || 0) ? 1 : 0, requiredLevelPerTier: [0, 5] },
-    { id: 'miningLevel', name: 'Уровень майнинга', desc: '+награда за сбор', cost: 400, maxLevel: 5, getValue: () => upgrades.miningLevel || 0, requiredLevelPerTier: [0, 5, 8, 12, 16, 20] },
-    { id: 'miningPerSec', name: 'Монет в секунду', desc: '+1 монет/сек пассивно', cost: 500, maxLevel: 5, getValue: () => upgrades.miningPerSec || 0, requiredLevelPerTier: [0, 6, 10, 14, 18, 22] },
+    { id: 'miningLevel', name: 'Уровень майнинга', desc: '+награда за сбор', cost: 400, maxLevel: 10, getValue: () => upgrades.miningLevel || 0, requiredLevelPerTier: [0, 5, 8, 12, 16, 20, 25, 30, 36, 42, 50] },
+    { id: 'miningPerSec', name: 'Монет в секунду', desc: '+1 монет/сек пассивно', cost: 500, maxLevel: 10, getValue: () => upgrades.miningPerSec || 0, requiredLevelPerTier: [0, 6, 10, 14, 18, 22, 28, 34, 40, 46, 55] },
   ];
 
   function getXpToNextLevel(lvl) {
@@ -193,7 +195,7 @@
     var t = e.target;
     if (t.closest('.header-brand')) return;
     if (e.type === 'touchstart' && (t.closest('.nft-card') || t.closest('.loot-box') || t.closest('[data-pack]') || t.closest('.nav-btn'))) return;
-    if (t.closest('.nft-card')) {
+    if (t.closest('.nft-card') && !t.closest('#packRevealModal')) {
       if (_didScroll) return;
       var cardEl = t.closest('.nft-card');
       if (cardEl === lastActionEl && Date.now() - lastActionTime < 400) return;
@@ -273,10 +275,12 @@
           if (e.type === 'touchstart') e.preventDefault();
           closeCardModal();
         } else if (m.id === 'packRevealModal') {
-          if (typeof _packRevealOnTap === 'function') {
-            e.stopPropagation();
-            if (e.type === 'touchstart') e.preventDefault();
-            _packRevealOnTap();
+          if (!t.closest('#packRevealCards') && !t.closest('.pack-flip-card')) {
+            if (typeof _packRevealOnTap === 'function') {
+              e.stopPropagation();
+              if (e.type === 'touchstart') e.preventDefault();
+              _packRevealOnTap();
+            }
           }
         } else m.classList.add('hidden');
       }
@@ -442,6 +446,29 @@
       }, { capture: true, passive: false });
     }
     try {
+      if (typeof window.ZOV_I18N !== 'undefined' && window.ZOV_I18N.applyTranslations) {
+        window.ZOV_I18N.applyTranslations();
+        var langBtns = app.querySelectorAll('.profile-lang-btn');
+        var curLang = window.ZOV_I18N.getLang ? window.ZOV_I18N.getLang() : 'ru';
+        langBtns.forEach(function (b) {
+          b.classList.toggle('active', b.dataset.lang === curLang);
+          if (!b._zovLangBound) {
+            b._zovLangBound = true;
+            b.addEventListener('click', function () {
+              var l = b.dataset.lang;
+              if (l && window.ZOV_I18N.setLanguage) {
+                window.ZOV_I18N.setLanguage(l);
+                langBtns.forEach(function (x) { x.classList.toggle('active', x.dataset.lang === l); });
+              }
+            });
+          }
+        });
+        window._zovOnLangChange = function () {
+          renderCards();
+          renderCollections();
+          renderUpgrades();
+        };
+      }
       restoreEnergyOffline();
       updateCoinDisplay();
       updateBars();
@@ -502,6 +529,10 @@
   }
   function saveSecretBoxKeys() {
     localStorage.setItem(STORAGE_KEYS.secretBoxKeys, String(secretBoxKeys));
+  }
+  function saveBoxesOpened() {
+    localStorage.setItem(STORAGE_KEYS.boxesOpened, String(boxesOpened));
+    syncSave();
   }
   function getTotalCards() {
     return cards.reduce(function (sum, c) { return sum + (c.count || 1); }, 0);
@@ -708,6 +739,8 @@
 
     var getLoc = typeof getRandomLocationFromList === 'function' ? getRandomLocationFromList : pickRandomLocation;
     var fromList = getLoc(boxType);
+    boxesOpened += 1;
+    saveBoxesOpened();
     if (fromList && fromList.name) {
       finishWithCard({ name: fromList.name, country: fromList.country, type: fromList.type });
     } else {
@@ -761,6 +794,8 @@
     updateCoinDisplay();
     var queue = [];
     function addCardsFromList(list) {
+      boxesOpened += list.length;
+      saveBoxesOpened();
       for (var i = 0; i < list.length; i++) {
         var loc = list[i];
         var r = typeof rollRandomRarity === 'function' ? rollRandomRarity(boxType) : 'common';
@@ -849,7 +884,12 @@
     if (!noFlip) {
       var delay = cardList.length >= 50 ? 35 : cardList.length > 10 ? 50 : cardList.length > 6 ? 100 : 300;
       cards.forEach(function (el, i) {
-        var t = setTimeout(function () { el.classList.add('flipped'); }, 100 + i * delay);
+        var t = setTimeout(function () {
+          el.classList.add('flipped');
+          if (cardList.length > 6 && container) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          }
+        }, 100 + i * delay);
         _packRevealFlipTimeouts.push(t);
       });
       var totalTime = 100 + (cards.length - 1) * delay + 100;
@@ -866,7 +906,8 @@
 
     if (!cardsGrid) return;
     if (cards.length === 0) {
-      cardsGrid.innerHTML = '<div class="cards-empty"><span class="cards-empty-icon">&#9733;</span>Пока нет карточек.<br>Открой боксы!</div>';
+      var emptyText = (typeof window !== 'undefined' && window.t) ? window.t('cards.empty') : 'Пока нет карточек.\nОткрой боксы!';
+      cardsGrid.innerHTML = '<div class="cards-empty"><span class="cards-empty-icon">&#9733;</span>' + emptyText.replace(/\n/g, '<br>') + '</div>';
       return;
     }
 
@@ -906,7 +947,11 @@
   }
 
   function rarityLabel(r) {
-    const labels = { common: 'Обычная', rare: 'Редкая', epic: 'Эпик', legendary: 'Легенда', inferno: 'Инферно', collector: 'Коллекционная', exclusive: 'Эксклюзив' };
+    if (typeof window !== 'undefined' && window.t) {
+      var key = (r || 'common').toLowerCase();
+      return window.t(key);
+    }
+    var labels = { common: 'Обычная', rare: 'Редкая', epic: 'Эпическая', legendary: 'Легенда', inferno: 'Инферно', collector: 'Коллекционная', exclusive: 'Эксклюзив' };
     return labels[r] || 'Обычная';
   }
 
@@ -997,6 +1042,10 @@
     if (req.type === 'village') return cards.filter(function (c) { return (c.type || '').toLowerCase() === 'village'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
     if (req.type === 'city') return cards.filter(function (c) { return (c.type || '').toLowerCase() === 'city'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
     if (req.type === 'legendary') return cards.filter(function (c) { return c.rarity === 'legendary'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
+    if (req.type === 'epic') return cards.filter(function (c) { return c.rarity === 'epic'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
+    if (req.type === 'rare') return cards.filter(function (c) { return c.rarity === 'rare'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
+    if (req.type === 'town') return cards.filter(function (c) { return (c.type || '').toLowerCase() === 'town'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
+    if (req.type === 'boxesOpened') return typeof boxesOpened !== 'undefined' ? boxesOpened : 0;
     if (req.type === 'island') return cards.filter(function (c) { return (c.type || '').toLowerCase() === 'island'; }).reduce(function (s, c) { return s + (c.count || 1); }, 0);
     if (req.type === 'countries') {
       var seen = {};
@@ -1306,6 +1355,7 @@
         if (typeof s.lastMiningClaimTime === 'number') { lastMiningClaimTime = s.lastMiningClaimTime; saveMining(); }
         if (typeof s.accumulatedMiningPassive === 'number') { accumulatedMiningPassive = s.accumulatedMiningPassive; saveMining(); }
         if (typeof s.secretBoxKeys === 'number') { secretBoxKeys = s.secretBoxKeys; saveSecretBoxKeys(); }
+        if (typeof s.boxesOpened === 'number') { boxesOpened = s.boxesOpened; saveBoxesOpened(); }
         updateCoinDisplay();
         updateBars();
         renderCards();
@@ -1349,6 +1399,7 @@
           lastMiningClaimTime: lastMiningClaimTime,
           accumulatedMiningPassive: accumulatedMiningPassive,
           secretBoxKeys: secretBoxKeys,
+          boxesOpened: boxesOpened,
         },
       };
       fetch(base + '/api/save', {

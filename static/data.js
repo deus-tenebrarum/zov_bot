@@ -269,11 +269,19 @@ const COLLECTIONS = [
   { id: 'cities10', title: '10 городов мира', req: { type: 'city', count: 10 }, rewardCoins: 200, rewardXp: 100 },
   { id: 'legendary3', title: '3 легендарные карты', req: { type: 'legendary', count: 3 }, rewardCoins: 500, rewardXp: 200 },
   { id: 'total50', title: 'Собери 50 карточек', req: { type: 'total', count: 50 }, rewardCoins: 800, rewardXp: 400 },
+  { id: 'epic5', title: '5 эпических карт', req: { type: 'epic', count: 5 }, rewardCoins: 400, rewardXp: 180 },
+  { id: 'rare15', title: '15 редких карт', req: { type: 'rare', count: 15 }, rewardCoins: 350, rewardXp: 120 },
+  { id: 'open5boxes', title: 'Открой 5 боксов', req: { type: 'boxesOpened', count: 5 }, rewardCoins: 80, rewardXp: 40 },
+  { id: 'open20boxes', title: 'Открой 20 боксов', req: { type: 'boxesOpened', count: 20 }, rewardCoins: 250, rewardXp: 100 },
   { id: 'capitals50', title: '50 столиц государств', req: { type: 'capitals', count: 50 }, rewardCoins: 1500, rewardXp: 300 },
   { id: 'topCities10', title: 'Топ-10 самых населённых городов', req: { type: 'topCities', count: 10 }, rewardCoins: 2000, rewardXp: 400 },
   { id: 'fiveContinents', title: '5 городов с 5 континентов', req: { type: 'continents', count: 5 }, rewardCoins: 800, rewardXp: 200 },
   { id: 'islands10', title: '10 островов и островных городов', req: { type: 'island', count: 10 }, rewardCoins: 600, rewardXp: 150 },
   { id: 'villages20', title: '20 сёл и деревень', req: { type: 'village', count: 20 }, rewardCoins: 500, rewardXp: 120 },
+  { id: 'total100', title: 'Собери 100 карточек', req: { type: 'total', count: 100 }, rewardCoins: 1500, rewardXp: 600 },
+  { id: 'total200', title: 'Собери 200 карточек', req: { type: 'total', count: 200 }, rewardCoins: 3000, rewardXp: 1000 },
+  { id: 'legendary5', title: '5 легендарных карт', req: { type: 'legendary', count: 5 }, rewardCoins: 1200, rewardXp: 400 },
+  { id: 'towns15', title: '15 городков и посёлков', req: { type: 'town', count: 15 }, rewardCoins: 400, rewardXp: 150 },
   { id: 'allCountries', title: 'Все 250 стран мира', req: { type: 'countries', count: ALL_COUNTRIES_TARGET }, rewardCoins: 5000, rewardXp: 500, rewardSecretBoxKeys: 1 },
 ];
 if (typeof window !== 'undefined') {
@@ -286,7 +294,18 @@ if (typeof window !== 'undefined') {
 const RARITY_TYPES = ['common', 'rare', 'epic', 'legendary', 'inferno', 'collector', 'exclusive'];
 
 function getTypeLabel(type) {
-  const labels = { city: 'ГОРОД', town: 'ГОРОД', village: 'СЕЛО', island: 'ОСТРОВ', site: 'МЕСТО', region: 'РЕГИОН', country: 'СТРАНА' };
+  var t = typeof window !== 'undefined' && window.t;
+  if (t) {
+    var key = (type || '').toLowerCase();
+    if (key === 'city' || key === 'town') return t('city');
+    if (key === 'village') return t('village');
+    if (key === 'island') return t('island');
+    if (key === 'site') return t('site');
+    if (key === 'region') return t('region');
+    if (key === 'country') return t('country');
+    return t('location');
+  }
+  var labels = { city: 'ГОРОД', town: 'ГОРОД', village: 'СЕЛО', island: 'ОСТРОВ', site: 'МЕСТО', region: 'РЕГИОН', country: 'СТРАНА' };
   return labels[type] || 'ЛОКАЦИЯ';
 }
 

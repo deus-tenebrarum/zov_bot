@@ -30,9 +30,9 @@
         <div class="loader-bar" id="loaderBar"></div>
         <span class="loader-percent" id="loaderPercent">0%</span>
       </div>
-      <p class="loader-hint">Открывай боксы • Собирай карточки • Покоряй мир</p>
+      <p class="loader-hint" data-i18n="loader.hint">Открывай боксы • Собирай карточки • Покоряй мир</p>
     </div>
-    <div class="loader-tap" id="loaderTap">Нажми, чтобы продолжить</div>
+    <div class="loader-tap" id="loaderTap" data-i18n="loader.tap">Нажми, чтобы продолжить</div>
   </div>
 
   <div id="app" class="app hidden">
@@ -48,8 +48,8 @@
       <section class="screen screen--clicker active" data-panel="clicker">
         <div class="screen-inner">
           <div class="game-card">
-            <h1 class="game-card-title">Зарабатывай монеты</h1>
-            <p class="game-card-desc">Тапай по монете — тратится энергия. Копи на боксы и выбивай карточки.</p>
+            <h1 class="game-card-title" data-i18n="clicker.title">Зарабатывай монеты</h1>
+            <p class="game-card-desc" data-i18n="clicker.desc">Тапай по монете — тратится энергия. Копи на боксы и выбивай карточки.</p>
             <div class="game-card-area">
               <button type="button" class="tap-coin" id="coinBtn" aria-label="Тапнуть за монету">
                 <span class="tap-coin-glow"></span>
@@ -60,70 +60,70 @@
             </div>
             <div class="game-card-bars">
               <div class="bar-wrap bar-energy">
-                <span class="bar-label">Энергия</span>
+                <span class="bar-label" data-i18n="clicker.energy">Энергия</span>
                 <div class="bar-track"><div class="bar-fill" id="energyFill"></div></div>
                 <span class="bar-value" id="energyText">20 / 20</span>
               </div>
               <div class="bar-wrap bar-level">
-                <span class="bar-label">Уровень <span id="levelNum">1</span></span>
+                <span class="bar-label"><span data-i18n="clicker.level">Уровень</span> <span id="levelNum">1</span></span>
                 <div class="bar-track"><div class="bar-fill bar-fill--xp" id="levelFill"></div></div>
                 <span class="bar-value" id="xpText">0 / 100 XP</span>
               </div>
             </div>
-            <p class="game-card-hint">+1 энергия в секунду · Прокачивай в разделе «Прокачка»</p>
+            <p class="game-card-hint" data-i18n="clicker.hint">+1 энергия в секунду · Прокачивай в разделе «Прокачка»</p>
           </div>
         </div>
       </section>
 
       <section class="screen screen--boxes" data-panel="boxes">
         <div class="screen-inner">
-          <h1 class="screen-heading">Боксы</h1>
-          <p class="screen-sub">Открывай за монеты — внутри случайная локация из любой точки мира.</p>
+          <h1 class="screen-heading" data-i18n="boxes.title">Боксы</h1>
+          <p class="screen-sub" data-i18n="boxes.sub">Открывай за монеты — внутри случайная локация из любой точки мира.</p>
           <div class="boxes-list">
             <button type="button" class="loot-box loot-box--bronze" id="boxBronze" data-cost="50" data-box="bronze">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--bronze"></span></span>
               <span class="loot-box-text">
-                <strong class="loot-box-name">Бронзовый</strong>
-                <span class="loot-box-desc">1 карточка</span>
+                <strong class="loot-box-name" data-i18n="boxes.bronze">Бронзовый</strong>
+                <span class="loot-box-desc" data-i18n="boxes.bronzeDesc">1 карточка</span>
               </span>
               <span class="loot-box-price"><span class="loot-box-coin"></span> 50</span>
             </button>
             <button type="button" class="loot-box loot-box--silver" id="boxSilver" data-cost="200" data-box="silver">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--silver"></span></span>
               <span class="loot-box-text">
-                <strong class="loot-box-name">Серебряный</strong>
-                <span class="loot-box-desc">Лучший шанс на редкое</span>
+                <strong class="loot-box-name" data-i18n="boxes.silver">Серебряный</strong>
+                <span class="loot-box-desc" data-i18n="boxes.silverDesc">Лучший шанс на редкое</span>
               </span>
               <span class="loot-box-price"><span class="loot-box-coin"></span> 200</span>
             </button>
             <button type="button" class="loot-box loot-box--gold" id="boxGold" data-cost="500" data-box="gold">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--gold"></span></span>
               <span class="loot-box-text">
-                <strong class="loot-box-name">Золотой</strong>
-                <span class="loot-box-desc">Шанс на легенду</span>
+                <strong class="loot-box-name" data-i18n="boxes.gold">Золотой</strong>
+                <span class="loot-box-desc" data-i18n="boxes.goldDesc">Шанс на легенду</span>
               </span>
               <span class="loot-box-price"><span class="loot-box-coin"></span> 500</span>
             </button>
             <button type="button" class="loot-box loot-box--platinum" id="boxPlatinum" data-cost="1200" data-box="platinum">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--platinum"></span></span>
               <span class="loot-box-text">
-                <strong class="loot-box-name">Платиновый</strong>
-                <span class="loot-box-desc">Выше шанс легенды</span>
+                <strong class="loot-box-name" data-i18n="boxes.platinum">Платиновый</strong>
+                <span class="loot-box-desc" data-i18n="boxes.platinumDesc">Выше шанс легенды</span>
               </span>
               <span class="loot-box-price"><span class="loot-box-coin"></span> 1200</span>
             </button>
             <button type="button" class="loot-box loot-box--locked" id="boxSecret" data-cost="-1" data-box="secret" disabled title="Секретный ключ (промокод)">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--locked"></span></span>
               <span class="loot-box-text">
-                <strong class="loot-box-name">Секретный</strong>
-                <span class="loot-box-desc">Ключ из промокода</span>
+                <strong class="loot-box-name" data-i18n="boxes.secret">Секретный</strong>
+                <span class="loot-box-desc" data-i18n="boxes.secretDesc">Ключ из промокода</span>
               </span>
               <span class="loot-box-price loot-box-price--locked">1 ключ</span>
             </button>
           </div>
           <div class="progress-block packs-block">
-            <h2 class="progress-block-title">Паки</h2>
-            <p class="progress-block-desc">Открыть несколько кейсов со скидкой.</p>
+            <h2 class="progress-block-title" data-i18n="boxes.packs">Паки</h2>
+            <p class="progress-block-desc" data-i18n="boxes.packsDesc">Открыть несколько кейсов со скидкой.</p>
             <div class="packs-list">
               <div class="packs-row packs-row--bronze">
                 <span class="packs-label">Бронза</span>
@@ -156,10 +156,10 @@
 
       <section class="screen screen--cards" data-panel="cards">
         <div class="screen-inner">
-          <h1 class="screen-heading">Коллекция</h1>
-          <p class="screen-sub">Карточки городов и сёл — от Нью-Йорка до деревни в Сенегале.</p>
+          <h1 class="screen-heading" data-i18n="cards.title">Коллекция</h1>
+          <p class="screen-sub" data-i18n="cards.sub">Карточки городов и сёл — от Нью-Йорка до деревни в Сенегале.</p>
           <div class="collection-bar">
-            <span class="collection-count">У тебя <strong id="cardsCount">0</strong> карточек</span>
+            <span class="collection-count"><span data-i18n="cards.youHave">У тебя</span> <strong id="cardsCount">0</strong> <span data-i18n="cards.cardsWord">карточек</span></span>
           </div>
           <div class="cards-grid" id="cardsGrid"></div>
         </div>
@@ -167,10 +167,10 @@
 
       <section class="screen screen--progress" data-panel="progress">
         <div class="screen-inner">
-          <h1 class="screen-heading">Прокачка</h1>
-          <p class="screen-sub">Бусты за монеты и награды за коллекции.</p>
+          <h1 class="screen-heading" data-i18n="progress.title">Прокачка</h1>
+          <p class="screen-sub" data-i18n="progress.sub">Бусты за монеты и награды за коллекции.</p>
           <div class="progress-block">
-            <h2 class="progress-block-title">Бусты</h2>
+            <h2 class="progress-block-title" data-i18n="progress.boosts">Бусты</h2>
             <div class="upgrades-list" id="upgradesList"></div>
           </div>
           <div class="progress-block" id="miningBlock"></div>
@@ -184,21 +184,39 @@
 
       <section class="screen screen--leaderboard" data-panel="leaderboard">
         <div class="screen-inner">
-          <h1 class="screen-heading">Лидеры</h1>
+          <h1 class="screen-heading" data-i18n="leaderboard.title">Лидеры</h1>
           <div class="leaderboard-wrap">
             <div id="leaderboardList" class="leaderboard-list"></div>
             <div id="leaderboardMe" class="leaderboard-me hidden"></div>
           </div>
         </div>
       </section>
+
+      <section class="screen screen--profile" data-panel="profile">
+        <div class="screen-inner">
+          <h1 class="screen-heading" data-i18n="profile.title">Профиль</h1>
+          <div class="profile-block">
+            <h2 class="progress-block-title" data-i18n="profile.language">Язык</h2>
+            <div class="profile-lang-row">
+              <button type="button" class="profile-lang-btn active" data-lang="ru" data-i18n="profile.langRu">Русский</button>
+              <button type="button" class="profile-lang-btn" data-lang="en" data-i18n="profile.langEn">English</button>
+            </div>
+          </div>
+          <div class="profile-block">
+            <h2 class="progress-block-title" data-i18n="profile.settings">Настройки</h2>
+            <p class="profile-hint" data-i18n="profile.tonHint">Подключение TON кошелька — скоро</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <nav class="nav">
-      <button type="button" class="nav-btn active" data-tab="clicker" onclick="if(window.zovTab)window.zovTab('clicker',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3l14 9-6 2-4 6-4-17z"/></svg></span><span class="nav-btn-label">Кликер</span></button>
-      <button type="button" class="nav-btn" data-tab="boxes" onclick="if(window.zovTab)window.zovTab('boxes',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7l8.7 5 8.7-5M12 22V12"/></svg></span><span class="nav-btn-label">Боксы</span></button>
-      <button type="button" class="nav-btn" data-tab="cards" onclick="if(window.zovTab)window.zovTab('cards',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="8" rx="1"/><rect x="14" y="4" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="nav-btn-label">Карточки</span></button>
-      <button type="button" class="nav-btn" data-tab="progress" onclick="if(window.zovTab)window.zovTab('progress',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><span class="nav-btn-label">Прокачка</span></button>
-      <button type="button" class="nav-btn" data-tab="leaderboard" onclick="if(window.zovTab)window.zovTab('leaderboard',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 15v2c0 .5-.4.9-.9 1.1-1.2.4-2 1.5-2 3"/><path d="M14 15v2c0 .5.4.9.9 1.1 1.2.4 2 1.5 2 3"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg></span><span class="nav-btn-label">Лидеры</span></button>
+      <button type="button" class="nav-btn active" data-tab="clicker" onclick="if(window.zovTab)window.zovTab('clicker',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3l14 9-6 2-4 6-4-17z"/></svg></span><span class="nav-btn-label" data-i18n="nav.clicker">Кликер</span></button>
+      <button type="button" class="nav-btn" data-tab="boxes" onclick="if(window.zovTab)window.zovTab('boxes',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7l8.7 5 8.7-5M12 22V12"/></svg></span><span class="nav-btn-label" data-i18n="nav.boxes">Боксы</span></button>
+      <button type="button" class="nav-btn" data-tab="cards" onclick="if(window.zovTab)window.zovTab('cards',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="8" rx="1"/><rect x="14" y="4" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="nav-btn-label" data-i18n="nav.cards">Карточки</span></button>
+      <button type="button" class="nav-btn" data-tab="progress" onclick="if(window.zovTab)window.zovTab('progress',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><span class="nav-btn-label" data-i18n="nav.progress">Прокачка</span></button>
+      <button type="button" class="nav-btn" data-tab="leaderboard" onclick="if(window.zovTab)window.zovTab('leaderboard',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 15v2c0 .5-.4.9-.9 1.1-1.2.4-2 1.5-2 3"/><path d="M14 15v2c0 .5.4.9.9 1.1 1.2.4 2 1.5 2 3"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg></span><span class="nav-btn-label" data-i18n="nav.leaderboard">Лидеры</span></button>
+      <button type="button" class="nav-btn" data-tab="profile" onclick="if(window.zovTab)window.zovTab('profile',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="nav-btn-label" data-i18n="nav.profile">Профиль</span></button>
     </nav>
   </div>
 
@@ -242,10 +260,10 @@
     <div class="pack-reveal-wrap">
       <div class="pack-reveal-loading hidden" id="packRevealLoading">
         <div class="pack-reveal-spinner"></div>
-        <p class="pack-reveal-loading-text">Открываем паки...</p>
+        <p class="pack-reveal-loading-text" data-i18n="packReveal.loading">Открываем паки...</p>
       </div>
       <div class="pack-reveal-cards" id="packRevealCards"></div>
-      <p class="pack-reveal-hint">Нажми — открыть все · Ещё раз — закрыть</p>
+      <p class="pack-reveal-hint" data-i18n="packReveal.hint">Нажми — открыть все · Ещё раз — закрыть</p>
     </div>
   </div>
 
@@ -292,7 +310,8 @@
       setTimeout(function() { if (!ready) onReady(); }, 4000);
     })();
   </script>
+  <script src="i18n.js?v=1"></script>
   <script src="data.js?v=1"></script>
-  <script src="app.js?v=28"></script>
+  <script src="app.js?v=29"></script>
 </body>
 </html>

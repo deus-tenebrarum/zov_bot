@@ -1081,7 +1081,7 @@ html, body {
   grid-template-columns: repeat(2, 1fr);
   justify-content: center;
   justify-items: center;
-  align-content: center;
+  align-content: start;
   gap: 14px;
 }
 .pack-reveal-cards.pack-reveal-cards--few .pack-flip-card:nth-child(5) {
@@ -1102,7 +1102,7 @@ html, body {
 .pack-reveal-cards.pack-reveal-cards--medium {
   grid-template-columns: repeat(3, 1fr);
   justify-items: center;
-  align-content: center;
+  align-content: start;
   gap: 12px;
 }
 .pack-reveal-cards.pack-reveal-cards--medium .pack-flip-card {
@@ -1328,6 +1328,42 @@ html, body {
   flex-shrink: 0;
 }
 .upgrade-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* —— Профиль —— */
+.profile-block {
+  margin-bottom: 24px;
+}
+.profile-lang-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.profile-lang-btn {
+  padding: 10px 20px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  background: rgba(24,24,32,0.9);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.profile-lang-btn:hover {
+  border-color: var(--accent-gold);
+  background: rgba(212,175,55,0.1);
+}
+.profile-lang-btn.active {
+  border-color: var(--accent-gold);
+  background: rgba(212,175,55,0.2);
+  color: var(--accent-gold);
+}
+.profile-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
 
 /* —— Секретное меню (промокод) —— */
 .secret-modal { z-index: 1100; }
