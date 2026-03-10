@@ -1364,6 +1364,68 @@ html, body {
   color: var(--text-secondary);
   margin-top: 8px;
 }
+.profile-referral-block .profile-referral-btn {
+  margin-top: 12px;
+}
+.profile-referral-stats {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.profile-referral-stats strong {
+  color: var(--accent-gold);
+}
+.referral-notification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.25), rgba(184,148,46,0.2));
+  border-bottom: 1px solid rgba(212,175,55,0.4);
+  animation: referralSlide 0.4s ease;
+}
+.referral-notification.hidden { display: none !important; }
+@keyframes referralSlide {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.referral-notification-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+}
+.referral-notification-icon { font-size: 1.4rem; }
+.referral-notification-inner span:not(.referral-notification-icon) {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.referral-notification-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.daily-reward-modal { z-index: 1100; }
+.daily-reward-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+}
+.daily-reward-icon { font-size: 3rem; }
+.daily-reward-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+}
 
 /* —— Секретное меню (промокод) —— */
 .secret-modal { z-index: 1100; }

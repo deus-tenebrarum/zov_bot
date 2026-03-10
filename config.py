@@ -1,5 +1,5 @@
 # Zero or Valuable — конфиг бота
-# Локально: задай BOT_TOKEN. GAME_URL/API_URL — по умолчанию Railway.
+# BOT_TOKEN, GAME_URL, API_URL — без изменений
 import os
 
 RAILWAY_URL = "https://zovbot-production.up.railway.app"

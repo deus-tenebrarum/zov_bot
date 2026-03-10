@@ -202,6 +202,15 @@
               <button type="button" class="profile-lang-btn" data-lang="en" data-i18n="profile.langEn">English</button>
             </div>
           </div>
+          <div class="profile-block profile-referral-block">
+            <h2 class="progress-block-title" data-i18n="profile.referral">Пригласи друга</h2>
+            <p class="profile-hint" data-i18n="profile.referralDesc">1500 монет и 1 бокс за каждого друга</p>
+            <button type="button" class="profile-referral-btn upgrade-btn" id="referralCopyBtn" data-i18n="profile.referralCopy">Скопировать ссылку</button>
+            <div class="profile-referral-stats" id="referralStats">
+              <span data-i18n="profile.referralInvited">Приглашено:</span> <strong id="referralCount">0</strong>
+              <span data-i18n="profile.referralEarned">Получено:</span> <strong id="referralCoins">0</strong> <span data-i18n="profile.referralCoins">монет</span>, <strong id="referralBoxes">0</strong> <span data-i18n="profile.referralBoxes">боксов</span>
+            </div>
+          </div>
           <div class="profile-block">
             <h2 class="progress-block-title" data-i18n="profile.settings">Настройки</h2>
             <p class="profile-hint" data-i18n="profile.tonHint">Подключение TON кошелька — скоро</p>
@@ -218,6 +227,26 @@
       <button type="button" class="nav-btn" data-tab="leaderboard" onclick="if(window.zovTab)window.zovTab('leaderboard',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 15v2c0 .5-.4.9-.9 1.1-1.2.4-2 1.5-2 3"/><path d="M14 15v2c0 .5.4.9.9 1.1 1.2.4 2 1.5 2 3"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg></span><span class="nav-btn-label" data-i18n="nav.leaderboard">Лидеры</span></button>
       <button type="button" class="nav-btn" data-tab="profile" onclick="if(window.zovTab)window.zovTab('profile',this);"><span class="nav-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="nav-btn-label" data-i18n="nav.profile">Профиль</span></button>
     </nav>
+  </div>
+
+  <!-- Ежедневная награда -->
+  <div id="dailyRewardModal" class="modal daily-reward-modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card-wrap daily-reward-wrap">
+      <div class="daily-reward-icon">🎁</div>
+      <h2 class="progress-block-title" data-i18n="daily.title">Бонус за ежедневный вход!</h2>
+      <p class="daily-reward-text" id="dailyRewardText">100 монет</p>
+      <button type="button" class="upgrade-btn" id="dailyRewardClose" data-i18n="daily.close">Забрать</button>
+    </div>
+  </div>
+
+  <!-- Реферальное уведомление -->
+  <div id="referralNotification" class="referral-notification hidden">
+    <div class="referral-notification-inner">
+      <span class="referral-notification-icon">🎁</span>
+      <span id="referralNotificationText"></span>
+      <button type="button" class="referral-notification-close" aria-label="Закрыть">×</button>
+    </div>
   </div>
 
   <!-- Секретное меню: ввод промокода (5 тапов по логотипу) -->

@@ -366,6 +366,7 @@
     panels.forEach(function(p){ p.classList.toggle('active', p.dataset.panel === tab); });
     refreshUpgradesAndBoxes();
     if (tab === 'leaderboard' && typeof loadLeaderboard === 'function') loadLeaderboard();
+    if (tab === 'profile' && typeof loadReferralData === 'function') loadReferralData();
   };
   window.zovTap = function(ev) {
     if (ev) { ev.preventDefault(); ev.stopPropagation(); }
@@ -483,6 +484,11 @@
         setTimeout(syncLeaderboard, 500);
         setTimeout(syncLeaderboard, 2500);
       }
+      setTimeout(function () {
+        if (typeof registerReferralIfNeeded === 'function') registerReferralIfNeeded();
+        if (typeof claimDailyIfNeeded === 'function') claimDailyIfNeeded();
+        if (typeof loadReferralData === 'function') loadReferralData();
+      }, 800);
     } catch (err) {
       console.error('ZOV startApp:', err);
     }
@@ -1328,6 +1334,144 @@
         leaderboardList.innerHTML = '<p class="progress-block-desc">Не удалось загрузить. Проверь соединение.</p>';
       });
     }, 400);
+  }
+  function claimDailyIfNeeded() {
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
+    try {
+      var params = new URLSearchParams(location.search);
+      if (params.get('daily') !== '1') return;
+      var initData = getInitData();
+      fetch(base + '/api/daily/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: initData }),
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        if (!res || !res.ok) return;
+        if (res.already) {
+          var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+          if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+            window.Telegram.WebApp.showAlert(t('daily.already') || 'Сегодня уже забрал. Приходи завтра!');
+          }
+          return;
+        }
+        if (res.claimed && res.reward) {
+          var modal = document.getElementById('dailyRewardModal');
+          var textEl = document.getElementById('dailyRewardText');
+          var closeBtn = document.getElementById('dailyRewardClose');
+          if (textEl) textEl.textContent = res.reward.label || '';
+          if (modal) modal.classList.remove('hidden');
+          if (typeof syncLoad === 'function') syncLoad();
+          if (closeBtn && !closeBtn._zovDailyBound) {
+            closeBtn._zovDailyBound = true;
+            closeBtn.addEventListener('click', function () {
+              if (modal) modal.classList.add('hidden');
+            });
+          }
+          var backdrop = modal && modal.querySelector('.modal-backdrop');
+          if (backdrop && !backdrop._zovDailyBound) {
+            backdrop._zovDailyBound = true;
+            backdrop.addEventListener('click', function () {
+              if (modal) modal.classList.add('hidden');
+            });
+          }
+        }
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function registerReferralIfNeeded() {
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
+    try {
+      var params = new URLSearchParams(location.search);
+      var ref = params.get('ref');
+      if (!ref) return;
+      var initData = getInitData();
+      fetch(base + '/api/referral/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referrer_id: ref, initData: initData }),
+      }).then(function (r) { return r.json();       }).then(function (res) {
+        if (res && res.ok && res.credited) {
+          if (typeof syncLoad === 'function') syncLoad();
+        }
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function loadReferralData() {
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
+    var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
+    if (!user || !user.id) return;
+    var initData = getInitData();
+    fetch(base + '/api/referral/stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: initData }),
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (!res || !res.ok) return;
+      var count = res.invitedCount || 0;
+      var coinsEarned = res.coinsEarned || 0;
+      var boxesEarned = res.boxesEarned || 0;
+      var countEl = document.getElementById('referralCount');
+      var coinsEl = document.getElementById('referralCoins');
+      var boxesEl = document.getElementById('referralBoxes');
+      if (countEl) countEl.textContent = count;
+      if (coinsEl) coinsEl.textContent = coinsEarned;
+      if (boxesEl) boxesEl.textContent = boxesEarned;
+      if (count > 0) {
+        var notify = document.getElementById('referralNotification');
+        var textEl = document.getElementById('referralNotificationText');
+        var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+        var msg = (t('profile.referralNotify') || 'Вы пригласили {count} человек. Получено: {coins} монет, {boxes} боксов.')
+          .replace('{count}', count).replace('{coins}', coinsEarned).replace('{boxes}', boxesEarned);
+        if (textEl) textEl.innerHTML = msg;
+        if (notify && !sessionStorage.getItem('zov_ref_notify_closed')) notify.classList.remove('hidden');
+      }
+    }).catch(function () {});
+    fetch(base + '/api/referral/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: initData }),
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok && res.link) {
+        var btn = document.getElementById('referralCopyBtn');
+        if (btn && !btn._zovRefBound) {
+          btn._zovRefBound = true;
+          btn._refLink = res.link;
+          btn.addEventListener('click', function () {
+            var link = btn._refLink;
+            if (!link) return;
+            var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+            var done = function () {
+              var orig = btn.textContent;
+              btn.textContent = t('profile.referralCopied');
+              setTimeout(function () { btn.textContent = orig; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(link).then(done).catch(function () {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+                  window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Играй в Zero or Valuable!'));
+                }
+              });
+            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+              window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Играй в Zero or Valuable!'));
+            } else {
+              done();
+            }
+          });
+        }
+      }
+    }).catch(function () {});
+    var closeBtn = document.querySelector('.referral-notification-close');
+    if (closeBtn && !closeBtn._zovBound) {
+      closeBtn._zovBound = true;
+      closeBtn.addEventListener('click', function () {
+        var n = document.getElementById('referralNotification');
+        if (n) n.classList.add('hidden');
+        sessionStorage.setItem('zov_ref_notify_closed', '1');
+      });
+    }
   }
   function syncLoad() {
     var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');

@@ -20,6 +20,10 @@ from flask_cors import CORS
 
 from config import BOT_TOKEN, API_URL
 
+BOT_USERNAME = os.environ.get("BOT_USERNAME", "ZovBot").lstrip("@")
+REFERRAL_COINS = 1500
+REFERRAL_BOXES = 1
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -28,6 +32,7 @@ STATIC_DIR = BASE_DIR / "static"
 DATA_DIR = Path(os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "")) or (BASE_DIR / "data")
 LEADERBOARD_FILE = DATA_DIR / "leaderboard.json"
 STORAGE_FILE = DATA_DIR / "storage.json"
+REFERRALS_FILE = DATA_DIR / "referrals.json"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 CORS(app)
@@ -84,6 +89,80 @@ def _save_leaderboard():
 
 
 LEADERBOARD.update(_load_leaderboard())
+
+REFERRALS = {}
+
+
+def _load_referrals():
+    if REFERRALS_FILE.exists():
+        try:
+            with open(REFERRALS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            logger.warning("Failed to load referrals: %s", e)
+    return {"credited": {}, "by_referrer": {}}
+
+
+def _save_referrals():
+    try:
+        REFERRALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(REFERRALS_FILE, "w", encoding="utf-8") as f:
+            json.dump(REFERRALS, f, ensure_ascii=False, indent=0)
+    except Exception as e:
+        logger.warning("Failed to save referrals: %s", e)
+
+
+REFERRALS.update(_load_referrals())
+
+DAILY_FILE = DATA_DIR / "daily.json"
+DAILY = {}
+
+
+def _load_daily():
+    if DAILY_FILE.exists():
+        try:
+            with open(DAILY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
+        except Exception as e:
+            logger.warning("Failed to load daily: %s", e)
+    return {}
+
+
+def _save_daily():
+    try:
+        DAILY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(DAILY_FILE, "w", encoding="utf-8") as f:
+            json.dump(DAILY, f, ensure_ascii=False, indent=0)
+    except Exception as e:
+        logger.warning("Failed to save daily: %s", e)
+
+
+DAILY.update(_load_daily())
+
+DAILY_REWARDS = [
+    {"type": "coins", "amount": 50, "label": "50 монет"},
+    {"type": "coins", "amount": 100, "label": "100 монет"},
+    {"type": "coins", "amount": 150, "label": "150 монет"},
+    {"type": "coins", "amount": 200, "label": "200 монет"},
+    {"type": "coins", "amount": 300, "label": "300 монет"},
+    {"type": "coins", "amount": 500, "label": "500 монет"},
+    {"type": "secretBoxKeys", "amount": 1, "label": "1 секретный бокс"},
+    {"type": "coins", "amount": 80, "label": "80 монет"},
+    {"type": "coins", "amount": 250, "label": "250 монет"},
+    {"type": "secretBoxKeys", "amount": 1, "label": "1 секретный бокс"},
+]
+
+
+def _get_daily_reward(user_id: str) -> dict:
+    """Случайная награда на день — одинаково для юзера в один день."""
+    from datetime import date
+    today = date.today().isoformat()
+    seed = hash(f"{user_id}_{today}") % (2**32)
+    idx = seed % len(DAILY_REWARDS)
+    return dict(DAILY_REWARDS[idx])
 
 
 def validate_init_data(init_data: str) -> dict | None:
@@ -182,6 +261,101 @@ def api_leaderboard():
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/api/referral/register", methods=["POST"])
+def api_referral_register():
+    """Регистрация реферала: текущий юзер пришёл по ссылке referrer_id. Начисляем награду пригласившему."""
+    data = request.get_json() or {}
+    init_data = data.get("initData") or request.headers.get("X-Init-Data")
+    user = validate_init_data(init_data)
+    referred_id = str(user.get("id")) if user else str(data.get("user_id") or "")
+    referrer_id = str(data.get("referrer_id") or "").strip()
+    if not referred_id or not referrer_id:
+        return jsonify({"ok": False})
+    if referrer_id == referred_id:
+        return jsonify({"ok": False})
+    credited = REFERRALS.get("credited", {})
+    if credited.get(referred_id):
+        return jsonify({"ok": True, "credited": False})
+    ref_state = STORAGE.get(referrer_id) or {}
+    if isinstance(ref_state, dict):
+        state = ref_state
+    else:
+        state = {}
+    coins_val = int(state.get("coins", 0)) + REFERRAL_COINS
+    keys_val = int(state.get("secretBoxKeys", 0)) + REFERRAL_BOXES
+    state["coins"] = coins_val
+    state["secretBoxKeys"] = keys_val
+    STORAGE[referrer_id] = state
+    _save_storage()
+    REFERRALS.setdefault("credited", {})[referred_id] = True
+    REFERRALS.setdefault("by_referrer", {}).setdefault(referrer_id, []).append(referred_id)
+    _save_referrals()
+    return jsonify({"ok": True, "credited": True})
+
+
+@app.route("/api/referral/stats", methods=["GET", "POST"])
+def api_referral_stats():
+    """Статистика рефералов: сколько пригласил, сколько монет и боксов получено."""
+    user_id = _get_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "invitedCount": 0, "coinsEarned": 0, "boxesEarned": 0})
+    by_ref = REFERRALS.get("by_referrer", {}).get(user_id, [])
+    count = len(by_ref)
+    coins = count * REFERRAL_COINS
+    boxes = count * REFERRAL_BOXES
+    return jsonify({
+        "ok": True,
+        "invitedCount": count,
+        "coinsEarned": coins,
+        "boxesEarned": boxes,
+    })
+
+
+@app.route("/api/referral/link", methods=["GET", "POST"])
+def api_referral_link():
+    """Ссылка для приглашения друзей."""
+    user_id = _get_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "link": ""})
+    link = f"https://t.me/{BOT_USERNAME}?start=ref_{user_id}"
+    return jsonify({"ok": True, "link": link})
+
+
+@app.route("/api/daily/claim", methods=["POST"])
+def api_daily_claim():
+    """Ежедневная награда — раз в день, случайная."""
+    from datetime import date
+    data = request.get_json() or {}
+    init_data = data.get("initData") or request.headers.get("X-Init-Data")
+    user = validate_init_data(init_data)
+    user_id = str(user.get("id")) if user else str(data.get("user_id") or "")
+    if not user_id:
+        return jsonify({"ok": False, "claimed": False})
+    today = date.today().isoformat()
+    last = DAILY.get(user_id)
+    if last == today:
+        return jsonify({"ok": True, "claimed": False, "already": True})
+    reward = _get_daily_reward(user_id)
+    state = STORAGE.get(user_id)
+    if isinstance(state, dict):
+        state = dict(state)
+    else:
+        state = {}
+    if reward["type"] == "coins":
+        state["coins"] = int(state.get("coins", 0)) + reward["amount"]
+    elif reward["type"] == "secretBoxKeys":
+        state["secretBoxKeys"] = int(state.get("secretBoxKeys", 0)) + reward["amount"]
+    STORAGE[user_id] = state
+    _save_storage()
+    DAILY[user_id] = today
+    _save_daily()
+    return jsonify({
+        "ok": True,
+        "claimed": True,
+        "reward": reward,
+    })
 
 
 @app.route("/")
