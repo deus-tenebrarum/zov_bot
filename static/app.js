@@ -468,6 +468,10 @@
           renderCards();
           renderCollections();
           renderUpgrades();
+          if (typeof renderMining === 'function') renderMining();
+          if (typeof updatePackButtons === 'function') updatePackButtons();
+          var panel = app.querySelector('[data-panel].active');
+          if (panel && panel.dataset.panel === 'leaderboard' && typeof loadLeaderboard === 'function') loadLeaderboard();
         };
       }
       restoreEnergyOffline();
@@ -616,7 +620,8 @@
         if (!el) return;
         var cost = BOX_COSTS[t];
         var total = cost != null ? Math.floor(cost * n * discount) : 0;
-        el.innerHTML = '<span class="pack-btn-count">' + n + ' шт</span><strong>' + total.toLocaleString('ru-RU') + '</strong><span class="pack-discount">−' + discountPct + '%</span>';
+        var pcs = (typeof window !== 'undefined' && window.t) ? window.t('boxes.pcs') : 'шт';
+        el.innerHTML = '<span class="pack-btn-count">' + n + ' ' + pcs + '</span><strong>' + total.toLocaleString('ru-RU') + '</strong><span class="pack-discount">−' + discountPct + '%</span>';
         el.disabled = cost != null && coins < total;
       });
     });
@@ -964,7 +969,11 @@
   // ─── Modal (разные анимации и фоны по редкости) ───
   var _cardModalOnClose = null;
   var _revealModalClasses = ['modal--reveal-common', 'modal--reveal-rare', 'modal--reveal-epic', 'modal--reveal-legendary', 'modal--reveal-inferno', 'modal--reveal-collector', 'modal--reveal-exclusive'];
-  var _revealLabels = { common: '', rare: 'Редкая!', epic: 'ЭПИК!', legendary: 'ЛЕГЕНДА!', inferno: 'ИНФЕРНО!', collector: 'КОЛЛЕКЦИОННАЯ!', exclusive: 'ЭКСКЛЮЗИВ!' };
+  function getRevealLabel(r) {
+    if (!r || r === 'common') return '';
+    var key = 'reveal.' + r;
+    return (typeof window !== 'undefined' && window.t) ? window.t(key) : ({ rare: 'Редкая!', epic: 'ЭПИК!', legendary: 'ЛЕГЕНДА!', inferno: 'ИНФЕРНО!', collector: 'КОЛЛЕКЦИОННАЯ!', exclusive: 'ЭКСКЛЮЗИВ!' }[r] || '');
+  }
   var _revealAnimByRarity = { common: 'reveal-drop', rare: 'reveal-scale', epic: 'reveal-flip', legendary: 'reveal-celebration', inferno: 'reveal-celebration', collector: 'reveal-celebration', exclusive: 'reveal-celebration' };
   function spawnRevealParticles(color, count) {
     var container = document.getElementById('modalRevealParticles');
@@ -997,7 +1006,7 @@
     if (isReveal) {
       cardModal.classList.add('modal--reveal-' + r);
       if (flashEl) flashEl.className = 'modal-reveal-flash modal-reveal-flash--' + r;
-      var labelText = _revealLabels[r] || '';
+      var labelText = getRevealLabel(r) || '';
       if (labelText && labelEl) { labelEl.textContent = labelText; labelEl.className = 'modal-reveal-label modal-reveal-label--' + r; }
       if (r === 'legendary' || r === 'inferno' || r === 'collector' || r === 'exclusive') {
         var particleColors = { legendary: 'rgba(255,215,100,0.9)', inferno: 'rgba(255,120,50,0.9)', collector: 'rgba(100,255,255,0.9)', exclusive: 'rgba(255,255,150,0.9)' };
@@ -1111,6 +1120,7 @@
 
   function renderUpgrades() {
     if (!upgradesList) return;
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
     var html = '';
     UPGRADE_DEFS.forEach(function (u) {
       var lvl = upgrades[u.id] || 0;
@@ -1119,11 +1129,13 @@
       var requiredLevel = (u.requiredLevelPerTier && u.requiredLevelPerTier[lvl + 1]) || 0;
       var miningOk = (u.id !== 'miningLevel' && u.id !== 'miningPerSec') || (upgrades.mining || 0) >= 1;
       var canBuy = !isMax && coins >= cost && level >= requiredLevel && miningOk;
-      var levelHint = requiredLevel > level ? ' (нужен ур. ' + requiredLevel + ')' : '';
+      var levelHint = requiredLevel > level ? ' (' + t('progress.needLvl') + ' ' + requiredLevel + ')' : '';
+      var name = t('upgrade.' + u.id) || u.name;
+      var desc = t('upgrade.' + u.id + 'Desc') || u.desc;
       html += '<div class="upgrade-item' + (isMax ? ' upgrade-item--max' : '') + '">' +
-        '<div><span class="upgrade-name">' + u.name + '</span><p class="upgrade-desc">' + u.desc + ' · Ур.' + lvl + '/' + u.maxLevel + levelHint + '</p></div>' +
+        '<div><span class="upgrade-name">' + name + '</span><p class="upgrade-desc">' + desc + ' · ' + t('progress.level') + lvl + '/' + u.maxLevel + levelHint + '</p></div>' +
         '<div>' +
-          (isMax ? '<span class="upgrade-cost">Макс.</span>' : '<span class="upgrade-cost">' + cost + ' монет</span><button type="button" class="upgrade-btn" data-upgrade="' + u.id + '" ' + (canBuy ? '' : 'disabled') + '>Купить</button>') +
+          (isMax ? '<span class="upgrade-cost">' + t('progress.max') + '</span>' : '<span class="upgrade-cost">' + cost + ' ' + t('progress.coins') + '</span><button type="button" class="upgrade-btn" data-upgrade="' + u.id + '" ' + (canBuy ? '' : 'disabled') + '>' + t('progress.buy') + '</button>') +
         '</div></div>';
     });
     upgradesList.innerHTML = html;
@@ -1153,13 +1165,15 @@
 
   function renderCollections() {
     if (!collectionsList || typeof COLLECTIONS === 'undefined') return;
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
     var html = '';
     COLLECTIONS.forEach(function (col) {
       var done = completedCollections.indexOf(col.id) >= 0;
       var count = getCollectionCount(col.req);
+      var title = t('collection.' + col.id) || col.title;
       html += '<div class="collection-item' + (done ? ' collection-item--done' : '') + '">' +
-        '<div><span class="collection-name">' + col.title + '</span><p class="collection-progress">' + (done ? 'Выполнено' : count + ' / ' + col.req.count) + '</p></div>' +
-        (done ? '' : '<span class="collection-reward">+' + (col.rewardCoins || 0) + ' монет, +' + (col.rewardXp || 0) + ' XP' + (col.rewardSecretBoxKeys ? ', +' + col.rewardSecretBoxKeys + ' секр. бокс' : '') + '</span>') +
+        '<div><span class="collection-name">' + title + '</span><p class="collection-progress">' + (done ? t('progress.done') : count + ' / ' + col.req.count) + '</p></div>' +
+        (done ? '' : '<span class="collection-reward">+' + (col.rewardCoins || 0) + ' ' + t('progress.rewardCoins') + ', +' + (col.rewardXp || 0) + ' ' + t('progress.rewardXp') + (col.rewardSecretBoxKeys ? ', +' + col.rewardSecretBoxKeys + ' ' + t('progress.secretBox') : '') + '</span>') +
         '</div>';
     });
     collectionsList.innerHTML = html;
@@ -1201,8 +1215,9 @@
   }
   function renderMining() {
     if (!miningBlock) return;
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
     if ((upgrades.mining || 0) < 1) {
-      miningBlock.innerHTML = '<p class="progress-block-desc">Купи прокачку «Майнинг в фоне» — забирай награду каждые 5 часов.</p>';
+      miningBlock.innerHTML = '<p class="progress-block-desc">' + t('mining.buy') + '</p>';
       return;
     }
     var baseReward = getMiningReward();
@@ -1216,16 +1231,16 @@
       var h = Math.floor(m / 60);
       m = m % 60;
       s = s % 60;
-      return (h ? h + ' ч ' : '') + (m ? m + ' мин ' : '') + s + ' сек';
+      return (h ? h + ' ' + t('mining.h') + ' ' : '') + (m ? m + ' ' + t('mining.min') + ' ' : '') + s + ' ' + t('mining.sec');
     }
-    var passiveLine = perSec > 0 ? '<p class="mining-passive">Пассивно: <strong>' + perSec + '</strong> монет/сек → к награде</p>' : '';
+    var passiveLine = perSec > 0 ? '<p class="mining-passive">' + t('mining.passive') + ' <strong>' + perSec + '</strong> ' + t('mining.perSec') + ' →</p>' : '';
     miningBlock.innerHTML =
       '<div class="mining-status">' +
         passiveLine +
-        '<p class="mining-reward">Награда: <strong id="miningRewardAmount">' + totalReward + '</strong> монет (ур. майнинга ' + (upgrades.miningLevel || 0) + '/5)</p>' +
+        '<p class="mining-reward">' + t('mining.reward') + ' <strong id="miningRewardAmount">' + totalReward + '</strong> ' + t('progress.coins') + ' (' + t('mining.level') + ' ' + (upgrades.miningLevel || 0) + '/5)</p>' +
         (canClaim
-          ? '<button type="button" class="upgrade-btn mining-claim" id="miningClaimBtn">Забрать награду</button>'
-          : '<p class="mining-timer">Следующая награда через: <span id="miningNextAt">' + formatTime(timeLeft) + '</span></p>') +
+          ? '<button type="button" class="upgrade-btn mining-claim" id="miningClaimBtn">' + t('mining.claim') + '</button>'
+          : '<p class="mining-timer">' + t('mining.next') + ' <span id="miningNextAt">' + formatTime(timeLeft) + '</span></p>') +
       '</div>';
     var btn = $('#miningClaimBtn');
     if (btn) btn.addEventListener('click', function () {
@@ -1287,10 +1302,11 @@
   // ─── Лидерборд (по кол-ву карточек) ────────────────────────────────
   function loadLeaderboard() {
     if (!leaderboardList) return;
-    leaderboardList.innerHTML = '<p class="progress-block-desc">Загрузка...</p>';
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+    leaderboardList.innerHTML = '<p class="progress-block-desc">' + t('lb.loading') + '</p>';
     var base = API_BASE || (typeof location !== 'undefined' && location.origin ? location.origin.replace(/\/$/, '') : '');
     if (!base) {
-      leaderboardList.innerHTML = '<p class="progress-block-desc">Открой игру через бота в Telegram.</p>';
+      leaderboardList.innerHTML = '<p class="progress-block-desc">' + t('lb.needBot') + '</p>';
       return;
     }
     if (typeof syncLeaderboard === 'function') syncLeaderboard();
@@ -1317,21 +1333,22 @@
             var myRow = data.find(function (r) { return String(r.user_id) === currentUserId; });
             var xpVal = (myRow && myRow.xp != null) ? myRow.xp : '—';
             var lvlVal = (myRow && myRow.level != null) ? myRow.level : '—';
-            meEl.innerHTML = '<div class="leaderboard-me-inner"><span class="leaderboard-rank">' + myPos + '</span><span class="lb-col lb-name">' + escapeHtml((myRow && myRow.username) || 'Ты') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + ((myRow && myRow.cardsCount) || 0) + '</span><span class="lb-col lb-cost">—</span></div>';
+            meEl.innerHTML = '<div class="leaderboard-me-inner"><span class="leaderboard-rank">' + myPos + '</span><span class="lb-col lb-name">' + escapeHtml((myRow && myRow.username) || t('lb.you')) + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + ((myRow && myRow.cardsCount) || 0) + '</span><span class="lb-col lb-cost">—</span></div>';
           }
         }
         leaderboardList.innerHTML = data.length === 0
-          ? '<p class="progress-block-desc">Пока никого нет. Собери карточки — появишься в топе!</p>'
-          : '<div class="leaderboard-header"><span class="lb-rank">№</span><span class="lb-col lb-name">Имя</span><span class="lb-col lb-xp">XP / Уровень</span><span class="lb-col lb-cards">Карт</span><span class="lb-col lb-cost">$</span></div>' +
+          ? '<p class="progress-block-desc">' + t('lb.empty') + '</p>'
+          : '<div class="leaderboard-header"><span class="lb-rank">№</span><span class="lb-col lb-name">' + t('lb.headerName') + '</span><span class="lb-col lb-xp">' + t('lb.headerXp') + '</span><span class="lb-col lb-cards">' + t('lb.headerCards') + '</span><span class="lb-col lb-cost">$</span></div>' +
             '<ul class="leaderboard-ul">' + data.slice(0, topN).map(function (row, i) {
               var xpVal = row.xp != null ? row.xp : '—';
               var lvlVal = row.level != null ? row.level : '—';
               var isMe = String(row.user_id) === currentUserId;
-              return '<li class="' + (isMe ? 'leaderboard-me-row' : '') + '"><span class="leaderboard-rank">' + (i + 1) + '</span><span class="lb-col lb-name">' + escapeHtml(row.username || 'Игрок') + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + (row.cardsCount || 0) + '</span><span class="lb-col lb-cost">—</span></li>';
+              return '<li class="' + (isMe ? 'leaderboard-me-row' : '') + '"><span class="leaderboard-rank">' + (i + 1) + '</span><span class="lb-col lb-name">' + escapeHtml(row.username || t('lb.player')) + '</span><span class="lb-col lb-xp">' + xpVal + ' / ' + lvlVal + '</span><span class="lb-col lb-cards">' + (row.cardsCount || 0) + '</span><span class="lb-col lb-cost">—</span></li>';
             }).join('') + '</ul>';
       })
       .catch(function () {
-        leaderboardList.innerHTML = '<p class="progress-block-desc">Не удалось загрузить. Проверь соединение.</p>';
+        var t2 = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+        leaderboardList.innerHTML = '<p class="progress-block-desc">' + t2('lb.error') + '</p>';
       });
     }, 400);
   }
@@ -1339,8 +1356,10 @@
     var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
     if (!base) return;
     try {
-      var params = new URLSearchParams(location.search);
-      if (params.get('daily') !== '1') return;
+      var params = new URLSearchParams(location.search || '');
+      var startParam = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.startParam) || '';
+      var hasDaily = params.get('daily') === '1' || startParam === 'daily' || (location.hash || '').indexOf('daily') >= 0;
+      if (!hasDaily) return;
       var initData = getInitData();
       fetch(base + '/api/daily/claim', {
         method: 'POST',

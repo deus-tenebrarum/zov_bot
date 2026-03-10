@@ -56,16 +56,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             referrer_id = parts[1][4:].strip()
             context.user_data["referrer_id"] = referrer_id
     referrer_id = referrer_id or context.user_data.get("referrer_id")
+    name = (user.first_name or "Игрок").strip()
     text = (
-        f"Привет, {user.first_name}!\n\n"
-        "🎮 **Zero or Valuable** — тапай по монете, открывай боксы и собирай карточки "
+        f"Привет, {name}!\n\n"
+        "🎮 Zero or Valuable — тапай по монете, открывай боксы и собирай карточки "
         "городов и сёл со всего мира.\n\n"
         "Используй кнопки меню внизу или нажми «Играть» ниже."
     )
     await update.message.reply_text(
         text,
         reply_markup=MENU_KEYBOARD,
-        parse_mode="Markdown",
     )
     await update.message.reply_text(
         "Нажми, чтобы открыть игру:",
@@ -89,14 +89,33 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+async def daily_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Команда /daily — собрать ежедневный бонус."""
+    referrer_id = context.user_data.get("referrer_id")
+    await update.message.reply_text(
+        "🎁 Бонус за ежедневный вход! Нажми кнопку ниже:",
+        reply_markup=get_game_inline_keyboard_with_ref(referrer_id, daily=True),
+    )
+
+
 async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработка нажатий кнопок меню."""
     text = (update.message.text or "").strip()
-    if text == "▶️ Играть" or text == "🔄 Заново":
-        referrer_id = context.user_data.get("referrer_id")
+    referrer_id = context.user_data.get("referrer_id")
+    if text == "▶️ Играть":
         await update.message.reply_text(
-            "Нажми кнопку ниже:" if text == "▶️ Играть" else "🔄 Открыть игру заново:",
+            "Нажми кнопку ниже:",
             reply_markup=get_game_inline_keyboard_with_ref(referrer_id),
+        )
+    elif text == "🔄 Заново":
+        await update.message.reply_text(
+            "🔄 Открыть игру заново:",
+            reply_markup=get_game_inline_keyboard_with_ref(referrer_id),
+        )
+    elif text == "🎁 Собрать":
+        await update.message.reply_text(
+            "🎁 Бонус за ежедневный вход! Нажми кнопку ниже, откроется игра — награда зачислится автоматически:",
+            reply_markup=get_game_inline_keyboard_with_ref(referrer_id, daily=True),
         )
 
 
@@ -110,6 +129,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("game", game))
     app.add_handler(CommandHandler("restart", restart))
+    app.add_handler(CommandHandler("daily", daily_cmd))
     app.add_handler(MessageHandler(filters.Regex("^(▶️ Играть|🔄 Заново|🎁 Собрать)$"), menu_button))
 
     logger.info("Бот запущен")

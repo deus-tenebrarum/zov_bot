@@ -126,25 +126,25 @@
             <p class="progress-block-desc" data-i18n="boxes.packsDesc">Открыть несколько кейсов со скидкой.</p>
             <div class="packs-list">
               <div class="packs-row packs-row--bronze">
-                <span class="packs-label">Бронза</span>
+                <span class="packs-label" data-i18n="boxes.bronzeLabel">Бронза</span>
                 <button type="button" class="pack-btn" data-pack="bronze-5">5 шт</button>
                 <button type="button" class="pack-btn" data-pack="bronze-10">10 шт</button>
                 <button type="button" class="pack-btn" data-pack="bronze-100">100 шт</button>
               </div>
               <div class="packs-row packs-row--silver">
-                <span class="packs-label">Серебро</span>
+                <span class="packs-label" data-i18n="boxes.silverLabel">Серебро</span>
                 <button type="button" class="pack-btn" data-pack="silver-5">5 шт</button>
                 <button type="button" class="pack-btn" data-pack="silver-10">10 шт</button>
                 <button type="button" class="pack-btn" data-pack="silver-100">100 шт</button>
               </div>
               <div class="packs-row packs-row--gold">
-                <span class="packs-label">Золото</span>
+                <span class="packs-label" data-i18n="boxes.goldLabel">Золото</span>
                 <button type="button" class="pack-btn" data-pack="gold-5">5 шт</button>
                 <button type="button" class="pack-btn" data-pack="gold-10">10 шт</button>
                 <button type="button" class="pack-btn" data-pack="gold-100">100 шт</button>
               </div>
               <div class="packs-row packs-row--platinum">
-                <span class="packs-label">Платина</span>
+                <span class="packs-label" data-i18n="boxes.platinumLabel">Платина</span>
                 <button type="button" class="pack-btn" data-pack="platinum-5">5 шт</button>
                 <button type="button" class="pack-btn" data-pack="platinum-10">10 шт</button>
                 <button type="button" class="pack-btn" data-pack="platinum-100">100 шт</button>
@@ -198,8 +198,8 @@
           <div class="profile-block">
             <h2 class="progress-block-title" data-i18n="profile.language">Язык</h2>
             <div class="profile-lang-row">
-              <button type="button" class="profile-lang-btn active" data-lang="ru" data-i18n="profile.langRu">Русский</button>
-              <button type="button" class="profile-lang-btn" data-lang="en" data-i18n="profile.langEn">English</button>
+              <button type="button" class="profile-lang-btn active" data-lang="ru" title="Русский">🇷🇺</button>
+              <button type="button" class="profile-lang-btn" data-lang="en" title="English">🇺🇸</button>
             </div>
           </div>
           <div class="profile-block profile-referral-block">
@@ -253,9 +253,9 @@
   <div id="secretCodeModal" class="modal secret-modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-card-wrap secret-code-wrap">
-      <h2 class="progress-block-title">Секретный код</h2>
-      <input type="text" id="secretCodeInput" class="secret-code-input" placeholder="Введи код" maxlength="20" />
-      <button type="button" id="secretCodeSubmit" class="upgrade-btn">Применить</button>
+      <h2 class="progress-block-title" data-i18n="secret.title">Секретный код</h2>
+      <input type="text" id="secretCodeInput" class="secret-code-input" data-i18n-placeholder="secret.placeholder" placeholder="Введи код" maxlength="20" />
+      <button type="button" id="secretCodeSubmit" class="upgrade-btn" data-i18n="secret.submit">Применить</button>
       <button type="button" id="secretCodeClose" class="modal-close" aria-label="Закрыть">×</button>
     </div>
   </div>

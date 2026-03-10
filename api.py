@@ -20,7 +20,7 @@ from flask_cors import CORS
 
 from config import BOT_TOKEN, API_URL
 
-BOT_USERNAME = os.environ.get("BOT_USERNAME", "ZovBot").lstrip("@")
+BOT_USERNAME = os.environ.get("BOT_USERNAME", "ZeroOrValuable_bot").lstrip("@")
 REFERRAL_COINS = 1500
 REFERRAL_BOXES = 1
 
