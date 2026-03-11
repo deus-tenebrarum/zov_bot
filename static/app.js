@@ -284,7 +284,7 @@
           if (e.type === 'touchstart') e.preventDefault();
           closeCardModal();
         } else if (m.id === 'packRevealModal') {
-          if (!t.closest('#packRevealCards') && !t.closest('.pack-flip-card')) {
+          if (!t.closest('.pack-flip-card')) {
             if (typeof _packRevealOnTap === 'function') {
               e.stopPropagation();
               if (e.type === 'touchstart') e.preventDefault();
@@ -866,6 +866,8 @@
         if (e.changedTouches[0] && Math.abs(e.changedTouches[0].clientY - touchY) < 15) {
           e.preventDefault();
           e.stopPropagation();
+          var pm = document.getElementById('packRevealModal');
+          if (pm) pm.classList.add('hidden');
           if (typeof showCardModal === 'function') showCardModal(card, false);
         }
       }, { passive: false });
@@ -873,6 +875,8 @@
     div.addEventListener('click', function (e) {
       e.stopPropagation();
       e.preventDefault();
+      var pm = document.getElementById('packRevealModal');
+      if (pm) pm.classList.add('hidden');
       if (typeof showCardModal === 'function') showCardModal(card, false);
     });
     return div;
