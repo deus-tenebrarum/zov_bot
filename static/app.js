@@ -207,15 +207,6 @@
       return;
     }
     if (t.closest('#coinBtn')) return;
-    if (t.closest('#packRevealModal') && t.closest('.pack-flip-card')) {
-      var cardEl = t.closest('.pack-flip-card');
-      var cardData = window._packRevealCardMap && cardEl && cardEl._packCardIdx != null && window._packRevealCardMap[cardEl._packCardIdx];
-      if (cardData) {
-        if (e.type === 'touchstart') e.preventDefault();
-        if (typeof showCardModal === 'function') showCardModal(cardData, false);
-        return;
-      }
-    }
     if (t.closest('#referralCopyBtn')) {
       if (_didScroll) return;
       if (t.closest('#referralCopyBtn') === lastActionEl && Date.now() - lastActionTime < 500) return;
@@ -862,12 +853,28 @@
           '<div class="nft-card-image-wrap"><img class="nft-card-image" src="' + imgUrl + '" alt="" loading="lazy" data-fallback="' + (placeholderUri || '') + '" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback}" /><div class="nft-card-overlay"></div></div>' +
           '<div class="nft-card-inner">' +
             '<div class="nft-card-type">' + escapeHtml(card.typeLabel || getTypeLabel(card.type)) + '</div>' +
-            '<div class="nft-card-name">' + escapeHtml(card.name) + '</div>' +
+            '<div class="nft-card-name">' + escapeHtml(typeof getLocationDisplayName === 'function' ? getLocationDisplayName(card.name) : card.name) + '</div>' +
             '<div class="nft-card-country">' + escapeHtml(typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country) + '</div>' +
             '<div class="nft-card-rarity rarity-' + (card.rarity || 'common') + '">' + rarityLabel(card.rarity) + '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
+    (function () {
+      var touchY = 0;
+      div.addEventListener('touchstart', function (e) { touchY = e.touches[0].clientY; }, { passive: true });
+      div.addEventListener('touchend', function (e) {
+        if (e.changedTouches[0] && Math.abs(e.changedTouches[0].clientY - touchY) < 15) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof showCardModal === 'function') showCardModal(card, false);
+        }
+      }, { passive: false });
+    })();
+    div.addEventListener('click', function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (typeof showCardModal === 'function') showCardModal(card, false);
+    });
     return div;
   }
   var _packRevealState = 'ready';
@@ -996,8 +1003,8 @@
               '</div>' +
               '<div class="nft-card-inner">' +
                 '<div class="nft-card-type">' + escapeHtml(c.typeLabel || getTypeLabel(c.type)) + '</div>' +
-                '<div class="nft-card-name">' + escapeHtml(c.name) + '</div>' +
-                '<div class="nft-card-country">' + escapeHtml(c.country) + '</div>' +
+                '<div class="nft-card-name">' + escapeHtml(typeof getLocationDisplayName === 'function' ? getLocationDisplayName(c.name) : c.name) + '</div>' +
+                '<div class="nft-card-country">' + escapeHtml(typeof getCountryDisplayName === 'function' ? getCountryDisplayName(c.country) : c.country) + '</div>' +
                 '<div class="nft-card-rarity rarity-' + (c.rarity || 'common') + '">' + rarityLabel(c.rarity) + '</div>' +
               '</div>' +
             '</div>'
@@ -1072,7 +1079,7 @@
       }
     }
     modalCardType.textContent = card.typeLabel || getTypeLabel(card.type);
-    modalCardName.textContent = card.name;
+    modalCardName.textContent = typeof getLocationDisplayName === 'function' ? getLocationDisplayName(card.name) : card.name;
     modalCardCountry.textContent = typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country;
     modalCardRarity.textContent = rarityLabel(card.rarity);
     modalCardRarity.className = 'nft-card-rarity rarity-' + r;
