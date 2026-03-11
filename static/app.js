@@ -610,6 +610,7 @@
   }
   function refreshUpgradesAndBoxes() {
     renderUpgrades();
+    renderCollections();
     updateBoxButtons();
     updatePackButtons();
     if (typeof renderMining === 'function') renderMining();
@@ -721,6 +722,7 @@
     saveCards();
     renderCards();
     checkCollections();
+    renderCollections();
   }
 
   // ─── Boxes ───────────────────────────────────────────────────────
