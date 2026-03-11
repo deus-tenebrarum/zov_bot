@@ -18,7 +18,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 
-from config import BOT_TOKEN, API_URL
+from config import BOT_TOKEN, API_URL, GAME_URL
 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "ZeroOrValuable_bot").lstrip("@")
 REFERRAL_COINS = 1500
@@ -313,6 +313,27 @@ def api_referral_stats():
     })
 
 
+@app.route("/api/wallet/connect", methods=["POST"])
+def api_wallet_connect():
+    """Сохранить адрес TON кошелька — привязка к профилю."""
+    user_id = _get_user_id()
+    if not user_id:
+        return jsonify({"ok": False})
+    data = request.get_json() or {}
+    address = (data.get("address") or "").strip()
+    if not address or len(address) < 40:
+        return jsonify({"ok": False})
+    state = STORAGE.get(user_id)
+    if isinstance(state, dict):
+        state = dict(state)
+    else:
+        state = {}
+    state["walletAddress"] = address
+    STORAGE[user_id] = state
+    _save_storage()
+    return jsonify({"ok": True})
+
+
 @app.route("/api/referral/link", methods=["GET", "POST"])
 def api_referral_link():
     """Ссылка для приглашения друзей."""
@@ -355,6 +376,19 @@ def api_daily_claim():
         "ok": True,
         "claimed": True,
         "reward": reward,
+    })
+
+
+@app.route("/tonconnect-manifest.json")
+def tonconnect_manifest():
+    """TON Connect manifest — обязателен для подключения кошелька."""
+    base = (GAME_URL or request.url_root.rstrip("/")).rstrip("/")
+    return jsonify({
+        "url": base,
+        "name": "Zero or Valuable",
+        "iconUrl": "https://placehold.co/180x180/1a1a26/d4af37/png?text=ZOV",
+        "termsOfUseUrl": base,
+        "privacyPolicyUrl": base,
     })
 
 

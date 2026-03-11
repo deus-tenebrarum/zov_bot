@@ -207,6 +207,15 @@
       return;
     }
     if (t.closest('#coinBtn')) return;
+    if (t.closest('#referralCopyBtn')) {
+      if (_didScroll) return;
+      if (t.closest('#referralCopyBtn') === lastActionEl && Date.now() - lastActionTime < 500) return;
+      lastActionEl = t.closest('#referralCopyBtn');
+      lastActionTime = Date.now();
+      if (e.type === 'touchstart') e.preventDefault();
+      if (typeof handleReferralCopy === 'function') handleReferralCopy();
+      return;
+    }
     if (t.closest('.nav-btn')) {
       if (_didScroll) return;
       var btn = t.closest('.nav-btn');
@@ -366,7 +375,10 @@
     panels.forEach(function(p){ p.classList.toggle('active', p.dataset.panel === tab); });
     refreshUpgradesAndBoxes();
     if (tab === 'leaderboard' && typeof loadLeaderboard === 'function') loadLeaderboard();
-    if (tab === 'profile' && typeof loadReferralData === 'function') loadReferralData();
+    if (tab === 'profile') {
+      if (typeof loadReferralData === 'function') loadReferralData();
+      if (typeof initTonConnect === 'function') initTonConnect();
+    }
   };
   window.zovTap = function(ev) {
     if (ev) { ev.preventDefault(); ev.stopPropagation(); }
@@ -1417,6 +1429,98 @@
       }).catch(function () {});
     } catch (e) {}
   }
+  function doReferralCopyShare(link) {
+    var btn = document.getElementById('referralCopyBtn');
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+    var orig = btn ? btn.textContent : '';
+    var done = function () {
+      if (btn) {
+        btn.textContent = t('profile.referralCopied');
+        setTimeout(function () { btn.textContent = orig; }, 1500);
+      }
+    };
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Играй в Zero or Valuable!'));
+      done();
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(done).catch(function () { done(); });
+    } else {
+      try {
+        var inp = document.createElement('input');
+        inp.value = link;
+        inp.style.position = 'fixed';
+        inp.style.opacity = '0';
+        document.body.appendChild(inp);
+        inp.select();
+        document.execCommand('copy');
+        document.body.removeChild(inp);
+      } catch (err) {}
+      done();
+    }
+  }
+  var _tonConnectUI = null;
+  function initTonConnect() {
+    if (_tonConnectUI || !window.TON_CONNECT_UI) return;
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base || base.indexOf('http') !== 0) return;
+    var manifestUrl = base + '/tonconnect-manifest.json';
+    try {
+      _tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: manifestUrl,
+        buttonRootId: 'tonConnectButton',
+      });
+      function updateWalletDisplay() {
+        var addrEl = document.getElementById('tonWalletAddress');
+        if (!addrEl) return;
+        var acc = _tonConnectUI && _tonConnectUI.account;
+        if (acc && acc.address) {
+          var addr = acc.address;
+          addrEl.textContent = addr.slice(0, 8) + '…' + addr.slice(-8);
+          addrEl.classList.remove('hidden');
+          fetch(base + '/api/wallet/connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address: addr, initData: getInitData() }),
+          }).catch(function () {});
+        } else {
+          addrEl.textContent = '';
+          addrEl.classList.add('hidden');
+        }
+      }
+      _tonConnectUI.onStatusChange(updateWalletDisplay);
+      if (_tonConnectUI.connectionRestored) {
+        _tonConnectUI.connectionRestored.then(updateWalletDisplay).catch(function () {});
+      }
+    } catch (err) {
+      console.warn('TON Connect init:', err);
+    }
+  }
+
+  window.handleReferralCopy = function () {
+    var btn = document.getElementById('referralCopyBtn');
+    var link = btn && btn._refLink;
+    if (link) {
+      doReferralCopyShare(link);
+      return;
+    }
+    var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
+    if (!base) return;
+    var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
+    if (!user || !user.id) return;
+    var initData = getInitData();
+    if (btn) btn.disabled = true;
+    fetch(base + '/api/referral/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: initData }),
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (btn) btn.disabled = false;
+      if (res && res.ok && res.link) {
+        if (btn) btn._refLink = res.link;
+        doReferralCopyShare(res.link);
+      }
+    }).catch(function () { if (btn) btn.disabled = false; });
+  };
   function loadReferralData() {
     var base = API_BASE || (location.origin ? location.origin.replace(/\/$/, '') : '');
     if (!base) return;
@@ -1455,31 +1559,7 @@
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok && res.link) {
         var btn = document.getElementById('referralCopyBtn');
-        if (btn && !btn._zovRefBound) {
-          btn._zovRefBound = true;
-          btn._refLink = res.link;
-          btn.addEventListener('click', function () {
-            var link = btn._refLink;
-            if (!link) return;
-            var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
-            var done = function () {
-              var orig = btn.textContent;
-              btn.textContent = t('profile.referralCopied');
-              setTimeout(function () { btn.textContent = orig; }, 1500);
-            };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(link).then(done).catch(function () {
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-                  window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Играй в Zero or Valuable!'));
-                }
-              });
-            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-              window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Играй в Zero or Valuable!'));
-            } else {
-              done();
-            }
-          });
-        }
+        if (btn) btn._refLink = res.link;
       }
     }).catch(function () {});
     var closeBtn = document.querySelector('.referral-notification-close');
