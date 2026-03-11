@@ -207,6 +207,15 @@
       return;
     }
     if (t.closest('#coinBtn')) return;
+    if (t.closest('#packRevealModal') && t.closest('.pack-flip-card')) {
+      var cardEl = t.closest('.pack-flip-card');
+      var cardData = window._packRevealCardMap && cardEl && cardEl._packCardIdx != null && window._packRevealCardMap[cardEl._packCardIdx];
+      if (cardData) {
+        if (e.type === 'touchstart') e.preventDefault();
+        if (typeof showCardModal === 'function') showCardModal(cardData, false);
+        return;
+      }
+    }
     if (t.closest('#referralCopyBtn')) {
       if (_didScroll) return;
       if (t.closest('#referralCopyBtn') === lastActionEl && Date.now() - lastActionTime < 500) return;
@@ -838,13 +847,14 @@
     addCardsFromList(list);
   }
 
-  function makePackCardEl(card, isMany, noFlip) {
+  function makePackCardEl(card, isMany, noFlip, idx) {
     var w = isMany ? 150 : 200;
     var h = isMany ? 105 : 140;
     var imgUrl = typeof getLocationImageUrl === 'function' ? getLocationImageUrl(card, w, h) : '';
     var placeholderUri = typeof getLocationPlaceholderDataUri === 'function' ? getLocationPlaceholderDataUri(card.name) : '';
     var div = document.createElement('div');
     div.className = 'pack-flip-card' + (noFlip ? ' pack-flip-card--plain' : '');
+    div._packCardIdx = idx;
     div.innerHTML =
       '<div class="pack-flip-inner">' +
         (noFlip ? '' : '<div class="pack-flip-back"></div>') +
@@ -853,7 +863,7 @@
           '<div class="nft-card-inner">' +
             '<div class="nft-card-type">' + escapeHtml(card.typeLabel || getTypeLabel(card.type)) + '</div>' +
             '<div class="nft-card-name">' + escapeHtml(card.name) + '</div>' +
-            '<div class="nft-card-country">' + escapeHtml(card.country) + '</div>' +
+            '<div class="nft-card-country">' + escapeHtml(typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country) + '</div>' +
             '<div class="nft-card-rarity rarity-' + (card.rarity || 'common') + '">' + rarityLabel(card.rarity) + '</div>' +
           '</div>' +
         '</div>' +
@@ -897,14 +907,50 @@
     else container.classList.add('pack-reveal-cards--few');
     var isMany = cardList.length > 10;
     var noFlip = false;
-    cardList.forEach(function (card) {
-      container.appendChild(makePackCardEl(card, isMany, noFlip));
-    });
+    window._packRevealCardMap = cardList;
+    if (cardList.length >= 80) {
+      modal.classList.remove('hidden');
+      var loadingTextEl = loadingEl ? loadingEl.querySelector('.pack-reveal-loading-text') : null;
+      var origLoadingText = loadingTextEl ? loadingTextEl.textContent : '';
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      var batchSize = 12;
+      var rendered = 0;
+      function renderBatch() {
+        var end = Math.min(rendered + batchSize, cardList.length);
+        for (var i = rendered; i < end; i++) {
+          container.appendChild(makePackCardEl(cardList[i], true, false, i));
+        }
+        rendered = end;
+        if (loadingTextEl) loadingTextEl.textContent = rendered + ' / ' + cardList.length;
+        if (rendered < cardList.length) {
+          requestAnimationFrame(renderBatch);
+        } else {
+          if (loadingTextEl) loadingTextEl.textContent = origLoadingText;
+          if (loadingEl) loadingEl.classList.add('hidden');
+          var flipCards = container.querySelectorAll('.pack-flip-card');
+          var delay = 20;
+          flipCards.forEach(function (el, i) {
+            var t = setTimeout(function () {
+              el.classList.add('flipped');
+              if (cardList.length > 6 && container) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            }, 100 + i * delay);
+            _packRevealFlipTimeouts.push(t);
+          });
+          var totalTime = 100 + (flipCards.length - 1) * delay + 100;
+          _packRevealFlipTimeouts.push(setTimeout(function () { _packRevealState = 'ready'; }, totalTime));
+        }
+      }
+      requestAnimationFrame(renderBatch);
+    } else {
+      cardList.forEach(function (card, idx) {
+        container.appendChild(makePackCardEl(card, isMany, noFlip, idx));
+      });
+    }
     container.scrollTop = 0;
     modal.classList.remove('hidden');
-    _packRevealState = 'opening';
+    _packRevealState = cardList.length >= 80 ? 'ready' : 'opening';
     var cards = container.querySelectorAll('.pack-flip-card');
-    if (!noFlip) {
+    if (!noFlip && cards.length > 0) {
       var delay = cardList.length >= 50 ? 35 : cardList.length > 10 ? 50 : cardList.length > 6 ? 100 : 300;
       cards.forEach(function (el, i) {
         var t = setTimeout(function () {
@@ -1027,7 +1073,7 @@
     }
     modalCardType.textContent = card.typeLabel || getTypeLabel(card.type);
     modalCardName.textContent = card.name;
-    modalCardCountry.textContent = card.country;
+    modalCardCountry.textContent = typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country;
     modalCardRarity.textContent = rarityLabel(card.rarity);
     modalCardRarity.className = 'nft-card-rarity rarity-' + r;
     var modalCard = cardModal.querySelector('.modal .nft-card');
