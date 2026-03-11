@@ -802,7 +802,7 @@ html, body {
   padding: 10px 12px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
   padding-left: max(12px, env(safe-area-inset-left));
-  padding-right: max(16px, env(safe-area-inset-right));
+  padding-right: max(20px, env(safe-area-inset-right));
   background: rgba(18,18,24,0.92);
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(255,255,255,0.06);
@@ -840,6 +840,7 @@ html, body {
   color: var(--accent-gold);
   background: rgba(212,175,55,0.12);
 }
+.nav-btn:last-child { padding-right: 14px; }
 
 /* —— Модалка карточки —— */
 .modal {
@@ -945,8 +946,11 @@ html, body {
   width: 100%;
   max-width: 320px;
 }
-.modal-card-wrap:not(.reveal-flip):not(.reveal-scale):not(.reveal-glow):not(.reveal-drop):not(.reveal-celebration) {
+.modal-card-wrap:not(.reveal-flip):not(.reveal-scale):not(.reveal-glow):not(.reveal-drop):not(.reveal-celebration):not(.modal-card-wrap--instant) {
   animation: cardReveal 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+.modal-card-wrap.modal-card-wrap--instant {
+  animation: none;
 }
 @keyframes cardReveal {
   from { opacity: 0; transform: scale(0.88); }
@@ -1021,6 +1025,7 @@ html, body {
 
 /* —— Pack reveal (сетка, все карты видны) —— */
 .pack-reveal-modal { animation: none; z-index: 1001; }
+.modal--above-pack { z-index: 1100; }
 .pack-reveal-wrap {
   position: relative;
   z-index: 2;

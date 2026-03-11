@@ -865,7 +865,7 @@
         '<div class="pack-flip-front nft-card nft-card--' + (card.rarity || 'common') + '">' +
           '<div class="nft-card-image-wrap"><img class="nft-card-image" src="' + imgUrl + '" alt="" loading="lazy" data-fallback="' + (placeholderUri || '') + '" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback}" /><div class="nft-card-overlay"></div></div>' +
           '<div class="nft-card-inner">' +
-            '<div class="nft-card-type">' + escapeHtml(card.typeLabel || getTypeLabel(card.type)) + '</div>' +
+            '<div class="nft-card-type">' + escapeHtml(typeof getTypeLabel === 'function' ? getTypeLabel(card.type) : (card.typeLabel || 'ЛОКАЦИЯ')) + '</div>' +
             '<div class="nft-card-name">' + escapeHtml(typeof getLocationDisplayName === 'function' ? getLocationDisplayName(card.name) : card.name) + '</div>' +
             '<div class="nft-card-country">' + escapeHtml(typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country) + '</div>' +
             '<div class="nft-card-rarity rarity-' + (card.rarity || 'common') + '">' + rarityLabel(card.rarity) + '</div>' +
@@ -880,9 +880,7 @@
           e.preventDefault();
           e.stopPropagation();
           window._cardModalOpenedFromPackAt = Date.now();
-          var pm = document.getElementById('packRevealModal');
-          if (pm) pm.classList.add('hidden');
-          if (typeof showCardModal === 'function') showCardModal(card, false);
+          if (typeof showCardModal === 'function') showCardModal(card, false, null, true);
         }
       }, { passive: false });
     })();
@@ -890,9 +888,7 @@
       e.stopPropagation();
       e.preventDefault();
       window._cardModalOpenedFromPackAt = Date.now();
-      var pm = document.getElementById('packRevealModal');
-      if (pm) pm.classList.add('hidden');
-      if (typeof showCardModal === 'function') showCardModal(card, false);
+      if (typeof showCardModal === 'function') showCardModal(card, false, null, true);
     });
     return div;
   }
@@ -1021,7 +1017,7 @@
                 countBadge +
               '</div>' +
               '<div class="nft-card-inner">' +
-                '<div class="nft-card-type">' + escapeHtml(c.typeLabel || getTypeLabel(c.type)) + '</div>' +
+                '<div class="nft-card-type">' + escapeHtml(typeof getTypeLabel === 'function' ? getTypeLabel(c.type) : (c.typeLabel || 'ЛОКАЦИЯ')) + '</div>' +
                 '<div class="nft-card-name">' + escapeHtml(typeof getLocationDisplayName === 'function' ? getLocationDisplayName(c.name) : c.name) + '</div>' +
                 '<div class="nft-card-country">' + escapeHtml(typeof getCountryDisplayName === 'function' ? getCountryDisplayName(c.country) : c.country) + '</div>' +
                 '<div class="nft-card-rarity rarity-' + (c.rarity || 'common') + '">' + rarityLabel(c.rarity) + '</div>' +
@@ -1079,8 +1075,9 @@
     container.classList.add('modal-reveal-particles--active');
     setTimeout(function () { container.classList.remove('modal-reveal-particles--active'); container.innerHTML = ''; }, 1000);
   }
-  function showCardModal(card, isReveal, onClosed) {
+  function showCardModal(card, isReveal, onClosed, fromPack) {
     _cardModalOnClose = onClosed || null;
+    if (cardModal) cardModal.classList.toggle('modal--above-pack', !!fromPack);
     _revealModalClasses.forEach(function (c) { if (cardModal) cardModal.classList.remove(c); });
     var r = card.rarity || 'common';
     var flashEl = document.getElementById('modalRevealFlash');
@@ -1097,7 +1094,7 @@
         spawnRevealParticles(particleColors[r] || 'rgba(255,255,255,0.8)', r === 'legendary' || r === 'exclusive' ? 24 : 16);
       }
     }
-    modalCardType.textContent = card.typeLabel || getTypeLabel(card.type);
+    modalCardType.textContent = typeof getTypeLabel === 'function' ? getTypeLabel(card.type) : (card.typeLabel || 'ЛОКАЦИЯ');
     modalCardName.textContent = typeof getLocationDisplayName === 'function' ? getLocationDisplayName(card.name) : card.name;
     modalCardCountry.textContent = typeof getCountryDisplayName === 'function' ? getCountryDisplayName(card.country) : card.country;
     modalCardRarity.textContent = rarityLabel(card.rarity);
@@ -1109,10 +1106,12 @@
       modalCard.classList.add('nft-card--' + r);
     }
     if (modalCardWrap) {
-      modalCardWrap.classList.remove('reveal-flip', 'reveal-scale', 'reveal-glow', 'reveal-drop', 'reveal-celebration');
+      modalCardWrap.classList.remove('reveal-flip', 'reveal-scale', 'reveal-glow', 'reveal-drop', 'reveal-celebration', 'modal-card-wrap--instant');
       if (isReveal) {
         var anim = _revealAnimByRarity[r] || 'reveal-drop';
         modalCardWrap.classList.add(anim);
+      } else {
+        modalCardWrap.classList.add('modal-card-wrap--instant');
       }
     }
     if (modalCardImage) {
@@ -1267,6 +1266,7 @@
   function closeCardModal() {
     if (Date.now() - (window._cardModalOpenedFromPackAt || 0) < 450) return;
     _revealModalClasses.forEach(function (c) { if (cardModal) cardModal.classList.remove(c); });
+    if (cardModal) cardModal.classList.remove('modal--above-pack');
     cardModal.classList.add('hidden');
     _cardModalClosedAt = Date.now();
     if (_cardModalOnClose) {
