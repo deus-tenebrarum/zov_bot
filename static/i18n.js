@@ -312,7 +312,7 @@
   function setLanguage(l) {
     if (T[l]) {
       lang = l;
-      localStorage.setItem(STORAGE_KEY, lang);
+      try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
       document.documentElement.lang = lang;
       applyTranslations();
       if (typeof window._zovOnLangChange === 'function') window._zovOnLangChange(lang);
@@ -336,4 +336,5 @@
   } else {
     applyTranslations();
   }
+  document.addEventListener('zov-ready', applyTranslations);
 })();

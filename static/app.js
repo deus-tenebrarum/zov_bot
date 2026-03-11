@@ -284,12 +284,10 @@
           if (e.type === 'touchstart') e.preventDefault();
           closeCardModal();
         } else if (m.id === 'packRevealModal') {
-          if (!t.closest('.pack-flip-card')) {
-            if (typeof _packRevealOnTap === 'function') {
-              e.stopPropagation();
-              if (e.type === 'touchstart') e.preventDefault();
-              _packRevealOnTap();
-            }
+          if (e.type === 'touchstart') {
+            window._packRevealTouchTarget = t.closest('.pack-flip-card') ? null : t;
+          } else if (!t.closest('.pack-flip-card') && e.type === 'click' && typeof _packRevealOnTap === 'function') {
+            _packRevealOnTap();
           }
         } else m.classList.add('hidden');
       }
@@ -401,6 +399,19 @@
       window._zovClickBound = true;
       document.addEventListener('click', handleAppClick, true);
       document.addEventListener('touchstart', handleAppClick, { capture: true, passive: false });
+      document.addEventListener('touchend', function (e) {
+        var pm = document.getElementById('packRevealModal');
+        if (!pm || pm.classList.contains('hidden')) { window._packRevealTouchTarget = null; return; }
+        var startTarget = window._packRevealTouchTarget;
+        window._packRevealTouchTarget = null;
+        if (!startTarget || startTarget.closest('.pack-flip-card')) return;
+        if (_didScroll) return;
+        if (typeof _packRevealOnTap === 'function') {
+          e.preventDefault();
+          e.stopPropagation();
+          _packRevealOnTap();
+        }
+      }, { capture: true, passive: false });
       function addPressed(e) {
         var el = (e.target && e.target.closest) ? e.target.closest('.loot-box:not(:disabled), .pack-btn:not(:disabled)') : null;
         if (el) el.classList.add('pressed');
@@ -868,6 +879,7 @@
         if (e.changedTouches[0] && Math.abs(e.changedTouches[0].clientY - touchY) < 15) {
           e.preventDefault();
           e.stopPropagation();
+          window._cardModalOpenedFromPackAt = Date.now();
           var pm = document.getElementById('packRevealModal');
           if (pm) pm.classList.add('hidden');
           if (typeof showCardModal === 'function') showCardModal(card, false);
@@ -877,6 +889,7 @@
     div.addEventListener('click', function (e) {
       e.stopPropagation();
       e.preventDefault();
+      window._cardModalOpenedFromPackAt = Date.now();
       var pm = document.getElementById('packRevealModal');
       if (pm) pm.classList.add('hidden');
       if (typeof showCardModal === 'function') showCardModal(card, false);
@@ -1252,6 +1265,7 @@
 
   var _cardModalClosedAt = 0;
   function closeCardModal() {
+    if (Date.now() - (window._cardModalOpenedFromPackAt || 0) < 450) return;
     _revealModalClasses.forEach(function (c) { if (cardModal) cardModal.classList.remove(c); });
     cardModal.classList.add('hidden');
     _cardModalClosedAt = Date.now();
