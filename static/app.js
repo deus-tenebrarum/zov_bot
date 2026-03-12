@@ -15,9 +15,10 @@
     accumulatedMiningPassive: 'zov_accumulatedMiningPassive',
     secretBoxKeys: 'zov_secretBoxKeys',
     boxesOpened: 'zov_boxesOpened',
+    prismaticPromo: 'zov_prismaticPromo',
   };
   const BOX_COSTS = { bronze: 50, silver: 200, gold: 500, platinum: 1200, secret: null };
-  var PROMO_CODES = { PROMO: { coins: 10000, secretBoxKeys: 1 }, BALANCE: { coins: 100000 } };
+  var PROMO_CODES = { PROMO: { coins: 10000, secretBoxKeys: 1 }, BALANCE: { coins: 100000 }, PRISMATIC: { prismaticNext: 1 } };
   const PACK_DISCOUNTS = { 5: 0.95, 10: 0.9, 100: 0.85 };
   const MINING_INTERVAL_MS = 5 * 60 * 60 * 1000;
   const MINING_BASE_REWARD = 80;
@@ -35,6 +36,7 @@
   let accumulatedMiningPassive = parseInt(localStorage.getItem(STORAGE_KEYS.accumulatedMiningPassive) || '0', 10);
   let secretBoxKeys = parseInt(localStorage.getItem(STORAGE_KEYS.secretBoxKeys) || '0', 10);
   let boxesOpened = parseInt(localStorage.getItem(STORAGE_KEYS.boxesOpened) || '0', 10);
+  let prismaticPromo = parseInt(localStorage.getItem(STORAGE_KEYS.prismaticPromo) || '0', 10);
   energyMax = 20 + (upgrades.energyCap || 0) * 10;
   if (!Array.isArray(cards)) cards = [];
   cards = cards.map(function (c) { return typeof c.count === 'number' ? c : Object.assign({}, c, { count: 1 }); });
@@ -310,6 +312,7 @@
       if (reward) {
         if (reward.coins) { coins += reward.coins; saveCoins(); }
         if (reward.secretBoxKeys) { secretBoxKeys += reward.secretBoxKeys; saveSecretBoxKeys(); }
+        if (reward.prismaticNext) { prismaticPromo += reward.prismaticNext; savePrismaticPromo(); }
         updateCoinDisplay();
         if (secretCodeModal) secretCodeModal.classList.add('hidden');
         if (secretCodeInput) secretCodeInput.value = '';
@@ -377,6 +380,7 @@
       if (typeof loadReferralData === 'function') loadReferralData();
       if (typeof initTonConnect === 'function') initTonConnect();
     }
+    if (tab === 'boxes' && typeof loadReferralData === 'function') loadReferralData();
   };
   window.zovTap = function(ev) {
     if (ev) { ev.preventDefault(); ev.stopPropagation(); }
@@ -563,6 +567,10 @@
   function saveSecretBoxKeys() {
     localStorage.setItem(STORAGE_KEYS.secretBoxKeys, String(secretBoxKeys));
   }
+  function savePrismaticPromo() {
+    localStorage.setItem(STORAGE_KEYS.prismaticPromo, String(prismaticPromo));
+    if (typeof syncSave === 'function') syncSave();
+  }
   function saveBoxesOpened() {
     localStorage.setItem(STORAGE_KEYS.boxesOpened, String(boxesOpened));
     syncSave();
@@ -631,8 +639,18 @@
       var btn = $('#box' + type.charAt(0).toUpperCase() + type.slice(1));
       if (btn) btn.disabled = coins < (BOX_COSTS[type] || 0);
     });
+    updateSecretBoxDisplay();
+  }
+  function updateSecretBoxDisplay() {
     var secretBtn = $('#boxSecret');
-    if (secretBtn) secretBtn.disabled = secretBoxKeys < 1;
+    var priceEl = $('#boxSecretPrice');
+    if (!secretBtn) return;
+    var refCount = window._referralCount || 0;
+    var isActive = secretBoxKeys >= 1 || refCount >= 1;
+    var t = (typeof window !== 'undefined' && window.t) ? window.t : function (k) { return k; };
+    if (priceEl) priceEl.textContent = isActive ? (t('boxes.secretGet') || 'Получить') : '???';
+    secretBtn.disabled = !isActive || secretBoxKeys < 1;
+    secretBtn.classList.toggle('loot-box--unlocked', isActive);
   }
   function updatePackButtons() {
     var types = ['bronze', 'silver', 'gold', 'platinum'];
@@ -738,30 +756,32 @@
 
   // ─── Boxes ───────────────────────────────────────────────────────
   var _openBoxLock = false;
+  var TON_BOX_TYPES = ['ton_basic', 'ton_premium', 'ton_elite'];
   function openBox(boxType) {
     if (_openBoxLock) return;
     _openBoxLock = true;
     setTimeout(function () { _openBoxLock = false; }, 800);
     var cost = BOX_COSTS[boxType];
     var useSecretKey = boxType === 'secret' && secretBoxKeys > 0;
-    if (!useSecretKey && (cost == null || coins < cost)) return;
+    var isTonBox = TON_BOX_TYPES.indexOf(boxType) >= 0;
+    if (!useSecretKey && !isTonBox && (cost == null || coins < cost)) return;
     if (useSecretKey) {
       secretBoxKeys--;
       saveSecretBoxKeys();
-    } else {
+    } else if (!isTonBox) {
       coins -= cost;
       saveCoins();
     }
     updateCoinDisplay();
 
-    var rarity = typeof rollRandomRarity === 'function' ? rollRandomRarity(boxType) : 'common';
-
-    function finishWithCard(loc) {
+    function finishWithCard(loc, r) {
+      var usePrismatic = prismaticPromo > 0;
+      if (usePrismatic) { prismaticPromo--; savePrismaticPromo(); }
       var cardData = {
         name: loc.name,
         country: loc.country,
         type: loc.type || 'city',
-        rarity: rarity,
+        rarity: usePrismatic ? 'prismatic' : (r || (typeof rollRandomRarity === 'function' ? rollRandomRarity(boxType) : 'common')),
         typeLabel: typeof getTypeLabel === 'function' ? getTypeLabel(loc.type || 'city') : 'ЛОКАЦИЯ',
       };
       addCard(cardData);
@@ -778,10 +798,10 @@
     boxesOpened += 1;
     saveBoxesOpened();
     if (fromList && fromList.name) {
-      finishWithCard({ name: fromList.name, country: fromList.country, type: fromList.type });
+      finishWithCard({ name: fromList.name, country: fromList.country, type: fromList.type }, fromList.rarity);
     } else {
       var fallback = pickRandomLocation(boxType);
-      finishWithCard({ name: fallback.name, country: fallback.country, type: fallback.type });
+      finishWithCard({ name: fallback.name, country: fallback.country, type: fallback.type }, fallback.rarity);
     }
   }
 
@@ -801,6 +821,14 @@
         openBox('secret');
       });
     }
+    ['ton_basic', 'ton_premium', 'ton_elite'].forEach(function (type) {
+      var id = 'boxTon' + (type === 'ton_basic' ? 'Basic' : type === 'ton_premium' ? 'Premium' : 'Elite');
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        openBox(type);
+      });
+    });
     updateBoxButtons();
   }
   var _openPackLock = false;
@@ -834,7 +862,9 @@
       saveBoxesOpened();
       for (var i = 0; i < list.length; i++) {
         var loc = list[i];
-        var r = typeof rollRandomRarity === 'function' ? rollRandomRarity(boxType) : 'common';
+        var usePrismatic = prismaticPromo > 0 && i === 0;
+        if (usePrismatic) { prismaticPromo--; savePrismaticPromo(); }
+        var r = usePrismatic ? 'prismatic' : (typeof rollRandomRarity === 'function' ? rollRandomRarity(boxType) : 'common');
         var cardData = { name: loc.name, country: loc.country, type: loc.type || 'city', rarity: r, typeLabel: typeof getTypeLabel === 'function' ? getTypeLabel(loc.type || 'city') : 'ЛОКАЦИЯ' };
         addCard(cardData);
         addXP(10);
@@ -1042,19 +1072,19 @@
       var key = (r || 'common').toLowerCase();
       return window.t(key);
     }
-    var labels = { common: 'Обычная', rare: 'Редкая', epic: 'Эпическая', legendary: 'Легенда', inferno: 'Инферно', collector: 'Коллекционная', exclusive: 'Эксклюзив' };
+    var labels = { common: 'Обычная', rare: 'Редкая', epic: 'Эпическая', legendary: 'Легенда', inferno: 'Инферно', collector: 'Коллекционная', exclusive: 'Эксклюзив', prismatic: 'Призматическая' };
     return labels[r] || 'Обычная';
   }
 
   // ─── Modal (разные анимации и фоны по редкости) ───
   var _cardModalOnClose = null;
-  var _revealModalClasses = ['modal--reveal-common', 'modal--reveal-rare', 'modal--reveal-epic', 'modal--reveal-legendary', 'modal--reveal-inferno', 'modal--reveal-collector', 'modal--reveal-exclusive'];
+  var _revealModalClasses = ['modal--reveal-common', 'modal--reveal-rare', 'modal--reveal-epic', 'modal--reveal-legendary', 'modal--reveal-inferno', 'modal--reveal-collector', 'modal--reveal-exclusive', 'modal--reveal-prismatic'];
   function getRevealLabel(r) {
     if (!r || r === 'common') return '';
     var key = 'reveal.' + r;
-    return (typeof window !== 'undefined' && window.t) ? window.t(key) : ({ rare: 'Редкая!', epic: 'ЭПИК!', legendary: 'ЛЕГЕНДА!', inferno: 'ИНФЕРНО!', collector: 'КОЛЛЕКЦИОННАЯ!', exclusive: 'ЭКСКЛЮЗИВ!' }[r] || '');
+    return (typeof window !== 'undefined' && window.t) ? window.t(key) : ({ rare: 'Редкая!', epic: 'ЭПИК!', legendary: 'ЛЕГЕНДА!', inferno: 'ИНФЕРНО!', collector: 'КОЛЛЕКЦИОННАЯ!', exclusive: 'ЭКСКЛЮЗИВ!', prismatic: 'ПРИЗМАТИЧЕСКАЯ!' }[r] || '');
   }
-  var _revealAnimByRarity = { common: 'reveal-drop', rare: 'reveal-scale', epic: 'reveal-flip', legendary: 'reveal-celebration', inferno: 'reveal-celebration', collector: 'reveal-celebration', exclusive: 'reveal-celebration' };
+  var _revealAnimByRarity = { common: 'reveal-drop', rare: 'reveal-scale', epic: 'reveal-flip', legendary: 'reveal-celebration', inferno: 'reveal-celebration', collector: 'reveal-celebration', exclusive: 'reveal-celebration', prismatic: 'reveal-prismatic' };
   function spawnRevealParticles(color, count) {
     var container = document.getElementById('modalRevealParticles');
     if (!container) return;
@@ -1089,9 +1119,10 @@
       if (flashEl) flashEl.className = 'modal-reveal-flash modal-reveal-flash--' + r;
       var labelText = getRevealLabel(r) || '';
       if (labelText && labelEl) { labelEl.textContent = labelText; labelEl.className = 'modal-reveal-label modal-reveal-label--' + r; }
-      if (r === 'legendary' || r === 'inferno' || r === 'collector' || r === 'exclusive') {
-        var particleColors = { legendary: 'rgba(255,215,100,0.9)', inferno: 'rgba(255,120,50,0.9)', collector: 'rgba(100,255,255,0.9)', exclusive: 'rgba(255,255,150,0.9)' };
-        spawnRevealParticles(particleColors[r] || 'rgba(255,255,255,0.8)', r === 'legendary' || r === 'exclusive' ? 24 : 16);
+      if (r === 'legendary' || r === 'inferno' || r === 'collector' || r === 'exclusive' || r === 'prismatic') {
+        var particleColors = { legendary: 'rgba(255,215,100,0.9)', inferno: 'rgba(255,120,50,0.9)', collector: 'rgba(100,255,255,0.9)', exclusive: 'rgba(255,255,150,0.9)', prismatic: 'rgba(255,100,255,0.95)' };
+        var count = r === 'prismatic' ? 48 : (r === 'legendary' || r === 'exclusive' ? 24 : 16);
+        spawnRevealParticles(particleColors[r] || 'rgba(255,255,255,0.8)', count);
       }
     }
     modalCardType.textContent = typeof getTypeLabel === 'function' ? getTypeLabel(card.type) : (card.typeLabel || 'ЛОКАЦИЯ');
@@ -1100,13 +1131,13 @@
     modalCardRarity.textContent = rarityLabel(card.rarity);
     modalCardRarity.className = 'nft-card-rarity rarity-' + r;
     var modalCard = cardModal.querySelector('.modal .nft-card');
-    var allRarities = ['common', 'rare', 'epic', 'legendary', 'inferno', 'collector', 'exclusive'];
+    var allRarities = ['common', 'rare', 'epic', 'legendary', 'inferno', 'collector', 'exclusive', 'prismatic'];
     if (modalCard) {
       allRarities.forEach(function (r2) { modalCard.classList.remove('nft-card--' + r2); });
       modalCard.classList.add('nft-card--' + r);
     }
     if (modalCardWrap) {
-      modalCardWrap.classList.remove('reveal-flip', 'reveal-scale', 'reveal-glow', 'reveal-drop', 'reveal-celebration', 'modal-card-wrap--instant');
+      modalCardWrap.classList.remove('reveal-flip', 'reveal-scale', 'reveal-glow', 'reveal-drop', 'reveal-celebration', 'reveal-prismatic', 'modal-card-wrap--instant');
       if (isReveal) {
         var anim = _revealAnimByRarity[r] || 'reveal-drop';
         modalCardWrap.classList.add(anim);
@@ -1129,7 +1160,7 @@
     cardModal.classList.remove('hidden');
     if (isReveal && modalCardWrap) {
       var anim = _revealAnimByRarity[r] || 'reveal-drop';
-      var animDuration = (anim === 'reveal-celebration' ? 1200 : anim === 'reveal-flip' ? 800 : 700);
+      var animDuration = anim === 'reveal-prismatic' ? 2000 : (anim === 'reveal-celebration' ? 1200 : anim === 'reveal-flip' ? 800 : 700);
       setTimeout(function () { modalCardWrap.classList.remove(anim); }, animDuration);
     }
   }
@@ -1359,6 +1390,7 @@
       if (reward) {
         if (reward.coins) { coins += reward.coins; saveCoins(); }
         if (reward.secretBoxKeys) { secretBoxKeys += reward.secretBoxKeys; saveSecretBoxKeys(); }
+        if (reward.prismaticNext) { prismaticPromo += reward.prismaticNext; savePrismaticPromo(); }
         updateCoinDisplay();
         secretCodeModal.classList.add('hidden');
         secretCodeInput.value = '';
@@ -1615,6 +1647,14 @@
       if (countEl) countEl.textContent = count;
       if (coinsEl) coinsEl.textContent = coinsEarned;
       if (boxesEl) boxesEl.textContent = boxesEarned;
+      window._referralCount = count;
+      if (count >= 1 && !localStorage.getItem('zov_referralKeyGiven')) {
+        secretBoxKeys += 1;
+        saveSecretBoxKeys();
+        localStorage.setItem('zov_referralKeyGiven', '1');
+        updateCoinDisplay();
+      }
+      if (typeof updateSecretBoxDisplay === 'function') updateSecretBoxDisplay();
       if (count > 0) {
         var notify = document.getElementById('referralNotification');
         var textEl = document.getElementById('referralNotificationText');
@@ -1672,6 +1712,7 @@
         if (typeof s.accumulatedMiningPassive === 'number') { accumulatedMiningPassive = s.accumulatedMiningPassive; saveMining(); }
         if (typeof s.secretBoxKeys === 'number') { secretBoxKeys = s.secretBoxKeys; saveSecretBoxKeys(); }
         if (typeof s.boxesOpened === 'number') { boxesOpened = s.boxesOpened; saveBoxesOpened(); }
+        if (typeof s.prismaticPromo === 'number') { prismaticPromo = s.prismaticPromo; savePrismaticPromo(); }
         updateCoinDisplay();
         updateBars();
         renderCards();
@@ -1716,6 +1757,7 @@
           accumulatedMiningPassive: accumulatedMiningPassive,
           secretBoxKeys: secretBoxKeys,
           boxesOpened: boxesOpened,
+          prismaticPromo: prismaticPromo,
         },
       };
       fetch(base + '/api/save', {

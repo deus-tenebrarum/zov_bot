@@ -567,6 +567,16 @@ html, body {
 .loot-box--platinum { border-left: 4px solid #a0aec0; }
 .loot-box--platinum:hover:not(:disabled) { box-shadow: 0 12px 28px rgba(160,174,192,0.2); }
 .loot-box--platinum .loot-box-visual { background: rgba(160,174,192,0.2); }
+
+/* TON boxes */
+.loot-box--ton { border-left: 4px solid #0088cc; }
+.loot-box--ton:hover:not(:disabled) { box-shadow: 0 12px 28px rgba(0,136,204,0.25); }
+.loot-box--ton .loot-box-visual { background: rgba(0,136,204,0.2); }
+.loot-box-cube--ton { background: linear-gradient(135deg, #0088cc 0%, #00a8e8 50%, #0088cc 100%); }
+.loot-box-cube--ton-elite { background: linear-gradient(135deg, #0088cc 0%, #00d4ff 25%, #ff6b00 50%, #0088cc 100%); background-size: 200% 200%; animation: tonEliteShine 3s ease infinite; }
+@keyframes tonEliteShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.ton-boxes-block .loot-boxes-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.loot-box-ton::before { content: ''; display: inline-block; width: 10px; height: 10px; background: linear-gradient(135deg, #0088cc, #00a8e8); border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 .loot-box--locked { border-left: 4px solid #4a5568; opacity: 0.85; }
 .loot-box--locked .loot-box-desc { color: #718096; }
 .loot-box-price--locked { color: #718096; font-size: 0.9rem; }
@@ -780,6 +790,29 @@ html, body {
 .rarity-inferno { background: rgba(255,69,0,0.3); color: #ff8c5a; }
 .rarity-collector { background: rgba(0,191,255,0.25); color: #5dd; }
 .rarity-exclusive { background: rgba(255,215,0,0.3); color: #ffd700; }
+.rarity-prismatic {
+  background: linear-gradient(135deg, rgba(255,0,128,0.4), rgba(128,0,255,0.4), rgba(0,200,255,0.4), rgba(255,200,0,0.4));
+  background-size: 400% 400%;
+  animation: prismaticShift 3s ease infinite;
+  color: #fff;
+  font-weight: 700;
+}
+.nft-card--prismatic {
+  border: 2px solid rgba(255,100,255,0.8);
+  box-shadow: 0 0 30px rgba(255,0,255,0.5), 0 0 60px rgba(128,0,255,0.3);
+  animation: prismaticGlow 2.5s ease-in-out infinite;
+}
+.nft-card--prismatic .nft-card-overlay {
+  background: linear-gradient(to top, rgba(30,0,40,0.95), rgba(80,0,100,0.4) 50%, transparent);
+}
+@keyframes prismaticShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes prismaticGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,0,255,0.5), 0 0 60px rgba(128,0,255,0.3); }
+  50% { box-shadow: 0 0 40px rgba(0,255,255,0.5), 0 0 80px rgba(255,0,128,0.4); }
+}
 .cards-empty {
   grid-column: 1 / -1;
   text-align: center;
@@ -867,6 +900,14 @@ html, body {
 .modal.modal--reveal-inferno .modal-backdrop { background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(50,15,5,0.5) 0%, rgba(70,25,10,0.7) 40%, rgba(0,0,0,0.95) 100%); }
 .modal.modal--reveal-collector .modal-backdrop { background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(5,30,50,0.5) 0%, rgba(10,50,80,0.7) 40%, rgba(0,0,0,0.95) 100%); }
 .modal.modal--reveal-exclusive .modal-backdrop { background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(50,45,10,0.5) 0%, rgba(60,55,15,0.7) 40%, rgba(0,0,0,0.95) 100%); }
+.modal.modal--reveal-prismatic .modal-backdrop {
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(80,0,120,0.4) 0%, rgba(0,80,150,0.3) 30%, rgba(150,0,150,0.3) 60%, rgba(0,0,0,0.95) 100%);
+  animation: prismaticBackdrop 4s ease-in-out infinite;
+}
+@keyframes prismaticBackdrop {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(60deg); }
+}
 .modal-reveal-flash {
   position: absolute; inset: 0;
   pointer-events: none;
@@ -881,6 +922,15 @@ html, body {
 .modal-reveal-flash--inferno { background: radial-gradient(circle at 50% 50%, rgba(255,100,50,0.45) 0%, transparent 70%); }
 .modal-reveal-flash--collector { background: radial-gradient(circle at 50% 50%, rgba(100,255,255,0.4) 0%, transparent 70%); }
 .modal-reveal-flash--exclusive { background: radial-gradient(circle at 50% 50%, rgba(255,255,150,0.5) 0%, transparent 70%); }
+.modal-reveal-flash--prismatic {
+  background: radial-gradient(circle at 50% 50%, rgba(255,0,255,0.6) 0%, rgba(0,255,255,0.4) 40%, transparent 70%);
+  animation: revealFlashPrismatic 1.5s ease-out forwards;
+}
+@keyframes revealFlashPrismatic {
+  0% { opacity: 1; filter: hue-rotate(0deg); }
+  50% { opacity: 0.8; filter: hue-rotate(180deg); }
+  100% { opacity: 0; filter: hue-rotate(360deg); }
+}
 @keyframes revealFlash {
   0% { opacity: 1; }
   40% { opacity: 0.6; }
@@ -907,6 +957,19 @@ html, body {
 .modal-reveal-label--inferno { color: #ff6b35; }
 .modal-reveal-label--collector { color: #00d4ff; }
 .modal-reveal-label--exclusive { color: #ffec8b; }
+.modal-reveal-label--prismatic {
+  background: linear-gradient(90deg, #ff0080, #8000ff, #00c0ff, #ffc800);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: prismaticText 2s linear infinite;
+  font-size: 1.5rem !important;
+}
+@keyframes prismaticText {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
 @keyframes revealLabel {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
   30% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
@@ -1014,6 +1077,15 @@ html, body {
 }
 .modal-card-wrap.reveal-celebration {
   animation: revealCelebration 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 0.25s both;
+}
+.modal-card-wrap.reveal-prismatic {
+  animation: revealPrismatic 2s cubic-bezier(0.34, 1.5, 0.64, 1) 0.3s both;
+}
+@keyframes revealPrismatic {
+  0% { opacity: 0; transform: scale(0.2) rotate(-10deg); filter: brightness(0.2) hue-rotate(0deg); }
+  30% { opacity: 1; transform: scale(1.2) rotate(5deg); filter: brightness(1.5) hue-rotate(120deg); }
+  60% { transform: scale(0.95) rotate(-2deg); filter: brightness(1.2) hue-rotate(240deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); filter: brightness(1) hue-rotate(360deg); }
 }
 @keyframes revealCelebration {
   0% { opacity: 0; transform: scale(0.3); filter: brightness(0.3); }

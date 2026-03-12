@@ -227,8 +227,11 @@ const BOX_RARITY_WEIGHTS = {
   bronze: { common: 58, rare: 28, epic: 10, legendary: 2, inferno: 1, collector: 0.5, exclusive: 0.5 },
   silver: { common: 43, rare: 33, epic: 14, legendary: 5, inferno: 2, collector: 1.5, exclusive: 1.5 },
   gold: { common: 23, rare: 38, epic: 24, legendary: 9, inferno: 3, collector: 2, exclusive: 2 },
-  platinum: { common: 12, rare: 32, epic: 34, legendary: 14, inferno: 4, collector: 2.5, exclusive: 2.5 },
-  secret: { common: 8, rare: 28, epic: 33, legendary: 22, inferno: 4, collector: 3, exclusive: 3 },
+  platinum: { common: 12, rare: 32, epic: 34, legendary: 14, inferno: 4, collector: 2.5, exclusive: 2.5, prismatic: 0.000001 },
+  secret: { common: 8, rare: 28, epic: 33, legendary: 22, inferno: 4, collector: 3, exclusive: 3, prismatic: 0.000001 },
+  ton_basic: { common: 40, rare: 35, epic: 15, legendary: 7, inferno: 2, collector: 0.8, exclusive: 0.2, prismatic: 0.000001 },
+  ton_premium: { common: 15, rare: 35, epic: 30, legendary: 12, inferno: 4, collector: 3, exclusive: 1, prismatic: 0.00001 },
+  ton_elite: { common: 0, rare: 0, epic: 0, legendary: 0, inferno: 40, collector: 35, exclusive: 25, prismatic: 0.001 },
 };
 
 // Столицы государств (name + country для матчинга карточек)
@@ -318,7 +321,7 @@ if (typeof window !== 'undefined') {
   window.getLocationDisplayName = getLocationDisplayName;
 }
 
-const RARITY_TYPES = ['common', 'rare', 'epic', 'legendary', 'inferno', 'collector', 'exclusive'];
+const RARITY_TYPES = ['common', 'rare', 'epic', 'legendary', 'inferno', 'collector', 'exclusive', 'prismatic'];
 
 function getTypeLabel(type) {
   var t = typeof window !== 'undefined' && window.t;

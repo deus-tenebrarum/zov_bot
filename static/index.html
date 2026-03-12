@@ -112,14 +112,44 @@
               </span>
               <span class="loot-box-price"><span class="loot-box-coin"></span> 1200</span>
             </button>
-            <button type="button" class="loot-box loot-box--locked" id="boxSecret" data-cost="-1" data-box="secret" disabled title="Секретный ключ (промокод)">
+            <button type="button" class="loot-box loot-box--secret" id="boxSecret" data-cost="-1" data-box="secret" disabled title="Секретный">
               <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--locked"></span></span>
               <span class="loot-box-text">
                 <strong class="loot-box-name" data-i18n="boxes.secret">Секретный</strong>
-                <span class="loot-box-desc" data-i18n="boxes.secretDesc">Ключ из промокода</span>
+                <span class="loot-box-desc" data-i18n="boxes.secretDesc">Выполни задание</span>
               </span>
-              <span class="loot-box-price loot-box-price--locked">1 ключ</span>
+              <span class="loot-box-price loot-box-price--secret" id="boxSecretPrice">???</span>
             </button>
+          </div>
+          <div class="progress-block ton-boxes-block">
+            <h2 class="progress-block-title" data-i18n="boxes.tonTitle">За TON</h2>
+            <p class="progress-block-desc" data-i18n="boxes.tonDesc">Крипто-боксы за TON</p>
+            <div class="loot-boxes-row">
+              <button type="button" class="loot-box loot-box--ton" id="boxTonBasic" data-cost-ton="0.5" data-box="ton_basic" title="Базовый TON">
+                <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--ton"></span></span>
+                <span class="loot-box-text">
+                  <strong class="loot-box-name" data-i18n="boxes.tonBasic">Базовый</strong>
+                  <span class="loot-box-desc" data-i18n="boxes.tonBasicDesc">1 карта</span>
+                </span>
+                <span class="loot-box-price"><span class="loot-box-ton"></span> 0.5 TON</span>
+              </button>
+              <button type="button" class="loot-box loot-box--ton" id="boxTonPremium" data-cost-ton="2" data-box="ton_premium" title="Премиум TON">
+                <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--ton"></span></span>
+                <span class="loot-box-text">
+                  <strong class="loot-box-name" data-i18n="boxes.tonPremium">Премиум</strong>
+                  <span class="loot-box-desc" data-i18n="boxes.tonPremiumDesc">Лучший шанс</span>
+                </span>
+                <span class="loot-box-price"><span class="loot-box-ton"></span> 2 TON</span>
+              </button>
+              <button type="button" class="loot-box loot-box--ton" id="boxTonElite" data-cost-ton="5" data-box="ton_elite" title="Элитный TON">
+                <span class="loot-box-visual"><span class="loot-box-cube loot-box-cube--ton-elite"></span></span>
+                <span class="loot-box-text">
+                  <strong class="loot-box-name" data-i18n="boxes.tonElite">Элитный</strong>
+                  <span class="loot-box-desc" data-i18n="boxes.tonEliteDesc">Только коллекц.+экскл.+инферно</span>
+                </span>
+                <span class="loot-box-price"><span class="loot-box-ton"></span> 5 TON</span>
+              </button>
+            </div>
           </div>
           <div class="progress-block packs-block">
             <h2 class="progress-block-title" data-i18n="boxes.packs">Паки</h2>
