@@ -1085,6 +1085,28 @@
     return (typeof window !== 'undefined' && window.t) ? window.t(key) : ({ rare: 'Редкая!', epic: 'ЭПИК!', legendary: 'ЛЕГЕНДА!', inferno: 'ИНФЕРНО!', collector: 'КОЛЛЕКЦИОННАЯ!', exclusive: 'ЭКСКЛЮЗИВ!', prismatic: 'ПРИЗМАТИЧЕСКАЯ!' }[r] || '');
   }
   var _revealAnimByRarity = { common: 'reveal-drop', rare: 'reveal-scale', epic: 'reveal-flip', legendary: 'reveal-celebration', inferno: 'reveal-celebration', collector: 'reveal-celebration', exclusive: 'reveal-celebration', prismatic: 'reveal-prismatic' };
+  function spawnPrismaticParticles(count) {
+    var container = document.getElementById('modalRevealParticles');
+    if (!container) return;
+    container.innerHTML = '';
+    container.classList.remove('modal-reveal-particles--active');
+    var rainbow = ['#ff0080', '#ff4000', '#ffc800', '#00ff80', '#00c0ff', '#8000ff', '#ff0080'];
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('span');
+      p.className = 'modal-reveal-particle modal-reveal-particle--prismatic';
+      var angle = (i / count) * 360 + Math.random() * 60;
+      var dist = 120 + Math.random() * 180;
+      p.style.setProperty('--angle', angle + 'deg');
+      p.style.setProperty('--dist', dist + 'px');
+      p.style.setProperty('--delay', (Math.random() * 0.2) + 's');
+      p.style.background = rainbow[i % rainbow.length];
+      p.style.boxShadow = '0 0 12px ' + rainbow[i % rainbow.length];
+      container.appendChild(p);
+    }
+    container.offsetHeight;
+    container.classList.add('modal-reveal-particles--active');
+    setTimeout(function () { container.classList.remove('modal-reveal-particles--active'); container.innerHTML = ''; }, 1800);
+  }
   function spawnRevealParticles(color, count) {
     var container = document.getElementById('modalRevealParticles');
     if (!container) return;
@@ -1120,9 +1142,10 @@
       var labelText = getRevealLabel(r) || '';
       if (labelText && labelEl) { labelEl.textContent = labelText; labelEl.className = 'modal-reveal-label modal-reveal-label--' + r; }
       if (r === 'legendary' || r === 'inferno' || r === 'collector' || r === 'exclusive' || r === 'prismatic') {
-        var particleColors = { legendary: 'rgba(255,215,100,0.9)', inferno: 'rgba(255,120,50,0.9)', collector: 'rgba(100,255,255,0.9)', exclusive: 'rgba(255,255,150,0.9)', prismatic: 'rgba(255,100,255,0.95)' };
-        var count = r === 'prismatic' ? 48 : (r === 'legendary' || r === 'exclusive' ? 24 : 16);
-        spawnRevealParticles(particleColors[r] || 'rgba(255,255,255,0.8)', count);
+        var particleColors = { legendary: 'rgba(255,215,100,0.9)', inferno: 'rgba(255,120,50,0.9)', collector: 'rgba(100,255,255,0.9)', exclusive: 'rgba(255,255,150,0.9)', prismatic: null };
+        var count = r === 'prismatic' ? 64 : (r === 'legendary' || r === 'exclusive' ? 24 : 16);
+        if (r === 'prismatic') spawnPrismaticParticles(count);
+        else spawnRevealParticles(particleColors[r] || 'rgba(255,255,255,0.8)', count);
       }
     }
     modalCardType.textContent = typeof getTypeLabel === 'function' ? getTypeLabel(card.type) : (card.typeLabel || 'ЛОКАЦИЯ');
@@ -1160,7 +1183,7 @@
     cardModal.classList.remove('hidden');
     if (isReveal && modalCardWrap) {
       var anim = _revealAnimByRarity[r] || 'reveal-drop';
-      var animDuration = anim === 'reveal-prismatic' ? 2000 : (anim === 'reveal-celebration' ? 1200 : anim === 'reveal-flip' ? 800 : 700);
+      var animDuration = anim === 'reveal-prismatic' ? 3500 : (anim === 'reveal-celebration' ? 1200 : anim === 'reveal-flip' ? 800 : 700);
       setTimeout(function () { modalCardWrap.classList.remove(anim); }, animDuration);
     }
   }
