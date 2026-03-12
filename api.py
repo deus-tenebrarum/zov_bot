@@ -383,13 +383,18 @@ def api_daily_claim():
 def tonconnect_manifest():
     """TON Connect manifest — обязателен для подключения кошелька."""
     base = (GAME_URL or request.url_root.rstrip("/")).rstrip("/")
-    return jsonify({
+    if not base.startswith("https://"):
+        base = "https://" + base.split("://", 1)[-1].lstrip("/")
+    resp = jsonify({
         "url": base,
         "name": "Zero or Valuable",
-        "iconUrl": "https://placehold.co/180x180/1a1a26/d4af37/png?text=ZOV",
-        "termsOfUseUrl": base,
-        "privacyPolicyUrl": base,
+        "iconUrl": "https://ton.org/download/ton_symbol.png",
+        "termsOfUseUrl": base + "/",
+        "privacyPolicyUrl": base + "/",
     })
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
 
 
 @app.route("/")
